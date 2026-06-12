@@ -1,0 +1,33 @@
+name: laundry_app
+description: "A new Flutter project."
+publish_to: "none"
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.11.1
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.8
+  supabase_flutter: ^2.14.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+  # 1. MEMASUKKAN PACKAGE IKON DI SINI
+  flutter_launcher_icons: "^0.13.1"
+
+# 2. MENGATUR JALUR IKON (Sesuai posisi file kamu saat ini)
+flutter_launcher_icons:
+  android: "launcher_icon"
+  ios: false
+  image_path: "assets/app_icon.png"
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/app_icon.png
