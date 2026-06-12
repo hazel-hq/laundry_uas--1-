@@ -91,11 +91,11 @@ Data awal yang otomatis dibuat:
 
 Migration juga membuat 3 akun demo untuk login aplikasi:
 
-| Role | Username | Password |
-| --- | --- | --- |
-| Pelanggan | `pelanggan1` | `123456` |
-| Pelanggan | `pelanggan2` | `123456` |
-| Admin | `admin` | `admin123` |
+| Role      | Username     | Password   |
+| --------- | ------------ | ---------- |
+| Pelanggan | `pelanggan1` | `123456`   |
+| Pelanggan | `pelanggan2` | `123456`   |
+| Admin     | `admin`      | `admin123` |
 
 Pelanggan baru juga bisa dibuat dari tombol **Daftar sebagai pelanggan** di halaman login.
 

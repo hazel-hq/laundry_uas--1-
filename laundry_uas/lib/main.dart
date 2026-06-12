@@ -59,4 +59,4 @@ class _SupabaseConfigScreen extends StatelessWidget {
       ),
     );
   }
-
+}
