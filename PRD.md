@@ -14,7 +14,7 @@ Tujuan utama:
 - Pengguna dapat melihat total biaya berdasarkan berat dan jenis layanan.
 - Pengguna dapat memantau status laundry secara bertahap.
 - Pengguna dapat memilih dan mengonfirmasi metode pembayaran.
-- Admin sederhana dapat memperbarui status pesanan melalui halaman tracking.
+- Admin dapat memantau seluruh pesanan dan memperbarui status pesanan melalui Dashboard Admin.
 
 ## 3. Target Pengguna
 
@@ -27,8 +27,11 @@ Tujuan utama:
 ### 4.1 Login
 
 - Pengguna dapat masuk menggunakan username dan password.
+- Pengguna dapat mendaftar sebagai pelanggan baru.
 - Pengguna dapat masuk sebagai guest.
-- Login saat ini belum melakukan validasi autentikasi ke backend.
+- Sistem membedakan role pelanggan dan admin.
+- Pelanggan diarahkan ke Home pelanggan.
+- Admin diarahkan ke Dashboard Admin.
 
 ### 4.2 Home
 
@@ -54,11 +57,12 @@ Total = berat x harga layanan
   - Nama wajib diisi.
   - Berat wajib diisi.
   - Berat harus lebih dari 0.
-- Setelah berhasil, pesanan disimpan ke daftar lokal aplikasi.
+  - Setelah berhasil, pesanan disimpan ke database Supabase.
 
 ### 4.4 Riwayat Pesanan
 
-- Menampilkan semua pesanan.
+- Pelanggan melihat pesanan miliknya sendiri.
+- Admin melihat seluruh pesanan melalui Dashboard Admin.
 - Menampilkan ringkasan total pesanan, pesanan selesai, dan pesanan proses.
 - Filter riwayat:
   - Semua
@@ -83,7 +87,8 @@ Total = berat x harga layanan
   - Selesai
   - Diantar
 - Menampilkan progress dalam bentuk timeline.
-- Tersedia panel admin untuk mengubah status pesanan.
+- Pelanggan dapat melihat perkembangan status pesanan.
+- Perubahan status dilakukan oleh admin melalui Dashboard Admin.
 
 ### 4.7 Pembayaran
 
@@ -111,19 +116,173 @@ Total = berat x harga layanan
   - Info laundry
   - Logout
 
-## 5. Alur Pengguna
+### 4.9 Dashboard Admin
 
-1. Pengguna membuka aplikasi.
-2. Pengguna masuk melalui login atau guest.
-3. Pengguna melihat home dan daftar layanan.
-4. Pengguna membuat pesanan baru.
-5. Sistem menghitung total biaya.
-6. Pesanan masuk ke riwayat.
-7. Pengguna membuka detail pesanan.
-8. Pengguna melacak status laundry.
-9. Pengguna memilih metode pembayaran.
-10. Pengguna mengonfirmasi pembayaran.
-11. Status pembayaran menjadi lunas.
+- Menampilkan ringkasan total pesanan.
+- Menampilkan jumlah pesanan aktif.
+- Menampilkan jumlah pesanan lunas.
+- Menampilkan jumlah pesanan selesai.
+- Menampilkan daftar seluruh pesanan pelanggan.
+- Admin dapat mengubah status pesanan.
+- Admin dapat melakukan refresh data pesanan.
+- Admin dapat logout dari halaman admin.
+
+## 5. Alur Aplikasi
+
+Alur aplikasi dibagi berdasarkan peran pengguna, yaitu pelanggan dan admin. Pemisahan alur ini diperlukan agar pengalaman pengguna lebih jelas, aman, dan sesuai dengan tanggung jawab masing-masing role.
+
+### 5.1 Alur Masuk Aplikasi
+
+1. Pengguna membuka aplikasi FreshLaundry.
+2. Sistem menampilkan halaman login.
+3. Pengguna memilih salah satu opsi:
+   - Login sebagai pelanggan menggunakan username dan password.
+   - Login sebagai admin menggunakan akun admin.
+   - Daftar sebagai pelanggan baru.
+   - Masuk sebagai guest untuk mencoba aplikasi.
+4. Sistem memvalidasi data login.
+5. Jika login berhasil:
+   - Pelanggan diarahkan ke halaman Home pelanggan.
+   - Admin diarahkan ke Dashboard Admin.
+6. Jika login gagal, sistem menampilkan pesan error yang jelas tanpa menghapus input pengguna.
+
+### 5.2 Alur Registrasi Pelanggan
+
+1. Pengguna memilih opsi **Daftar sebagai pelanggan** pada halaman login.
+2. Sistem menampilkan form registrasi.
+3. Pengguna mengisi:
+   - Nama lengkap
+   - Username
+   - Password
+4. Sistem melakukan validasi:
+   - Semua field wajib diisi.
+   - Password minimal 6 karakter.
+   - Username tidak boleh sama dengan akun yang sudah terdaftar.
+5. Jika registrasi berhasil, sistem menyimpan akun pelanggan dan mengarahkan pengguna ke halaman Home pelanggan.
+6. Jika registrasi gagal, sistem menampilkan penyebab kegagalan, misalnya username sudah digunakan.
+
+### 5.3 Alur Pelanggan Membuat Pesanan
+
+1. Pelanggan masuk ke halaman Home.
+2. Sistem menampilkan:
+   - Sapaan pengguna
+   - Ringkasan jumlah pesanan
+   - Jumlah pesanan aktif
+   - Daftar layanan laundry
+   - Pesanan terbaru
+3. Pelanggan memilih menu **Buat pesanan baru**.
+4. Sistem menampilkan form pesanan.
+5. Pelanggan mengisi:
+   - Nama pelanggan
+   - Berat laundry
+   - Jenis layanan
+6. Sistem menghitung estimasi total secara otomatis berdasarkan berat dan harga layanan.
+7. Pelanggan menekan tombol **Buat pesanan**.
+8. Sistem melakukan validasi:
+   - Nama pelanggan wajib diisi.
+   - Berat wajib diisi.
+   - Berat harus lebih dari 0.
+   - Layanan harus dipilih.
+9. Jika validasi berhasil, sistem menyimpan pesanan ke database dengan status awal:
+   - Status pesanan: `Menunggu`
+   - Status pembayaran: `Belum dibayar`
+10. Sistem mengarahkan pelanggan kembali ke Home atau Riwayat Pesanan.
+
+### 5.4 Alur Pelanggan Melihat Riwayat dan Detail Pesanan
+
+1. Pelanggan membuka menu Riwayat.
+2. Sistem menampilkan daftar pesanan milik pelanggan tersebut.
+3. Pelanggan dapat memfilter pesanan berdasarkan:
+   - Semua
+   - Proses
+   - Selesai
+   - Diantar
+4. Pelanggan memilih salah satu pesanan.
+5. Sistem menampilkan detail pesanan, meliputi:
+   - Kode pesanan
+   - Nama pelanggan
+   - Tanggal pesanan
+   - Layanan
+   - Berat
+   - Harga satuan
+   - Total pembayaran
+   - Status pesanan
+   - Status pembayaran
+6. Dari halaman detail, pelanggan dapat memilih:
+   - Lacak pesanan
+   - Bayar sekarang
+
+### 5.5 Alur Tracking Pesanan
+
+1. Pelanggan membuka halaman Tracking dari detail pesanan.
+2. Sistem menampilkan status pesanan saat ini.
+3. Sistem menampilkan progress pesanan dalam bentuk timeline.
+4. Status pesanan mengikuti urutan:
+   - `Menunggu`
+   - `Dicuci`
+   - `Dijemur`
+   - `Selesai`
+   - `Diantar`
+5. Pelanggan hanya melihat perkembangan status pesanan.
+6. Perubahan status dilakukan oleh admin melalui Dashboard Admin.
+
+### 5.6 Alur Pembayaran Pelanggan
+
+1. Pelanggan membuka halaman Pembayaran dari detail pesanan.
+2. Sistem menampilkan ringkasan tagihan:
+   - Nama pelanggan
+   - Layanan
+   - Berat
+   - Harga satuan
+   - Total tagihan
+3. Pelanggan memilih metode pembayaran:
+   - QRIS
+   - COD / Tunai
+4. Jika memilih QRIS:
+   - Sistem menampilkan QR / ID pembayaran.
+   - Sistem menampilkan nominal transfer.
+   - Pelanggan dapat menyalin nomor pembayaran.
+5. Jika memilih COD:
+   - Sistem menampilkan instruksi pembayaran di tempat.
+6. Pelanggan menekan tombol konfirmasi pembayaran.
+7. Sistem menyimpan data pembayaran ke database.
+8. Status pembayaran berubah menjadi `Lunas`.
+9. Sistem menampilkan notifikasi bahwa pembayaran berhasil dikonfirmasi.
+
+### 5.7 Alur Admin Mengelola Pesanan
+
+1. Admin login menggunakan akun admin.
+2. Sistem mengarahkan admin ke Dashboard Admin.
+3. Dashboard Admin menampilkan:
+   - Total seluruh pesanan
+   - Jumlah pesanan aktif
+   - Jumlah pesanan lunas
+   - Jumlah pesanan selesai
+   - Daftar seluruh pesanan pelanggan
+4. Admin memilih pesanan yang ingin dikelola.
+5. Admin dapat mengubah status pesanan sesuai tahapan proses laundry:
+   - `Menunggu`
+   - `Dicuci`
+   - `Dijemur`
+   - `Selesai`
+   - `Diantar`
+6. Sistem menyimpan perubahan status ke database.
+7. Perubahan status langsung terlihat pada halaman riwayat dan tracking pelanggan.
+8. Admin dapat melakukan refresh data untuk melihat pesanan terbaru.
+9. Admin dapat logout dari Dashboard Admin.
+
+### 5.8 Alur Logout
+
+1. Pengguna memilih tombol logout.
+2. Sistem menghapus sesi pengguna aktif.
+3. Sistem mengarahkan pengguna kembali ke halaman login.
+
+### 5.9 Alur Error dan Kondisi Kosong
+
+1. Jika aplikasi gagal mengambil data dari database, sistem menampilkan pesan error dan tombol **Coba lagi**.
+2. Jika belum ada pesanan, sistem menampilkan empty state yang informatif.
+3. Jika proses simpan data gagal, sistem menampilkan pesan gagal tanpa menutup halaman.
+4. Jika koneksi database belum dikonfigurasi, sistem menampilkan informasi bahwa konfigurasi Supabase belum lengkap.
 
 ## 6. Data Pesanan
 
@@ -132,6 +291,8 @@ Model data utama: `Order`
 Field:
 
 - `id`
+- `orderCode`
+- `customerUsername`
 - `nama`
 - `berat`
 - `layanan`
@@ -145,13 +306,13 @@ Status default:
 - `status`: Menunggu
 - `statusBayar`: Belum dibayar
 
-Penyimpanan saat ini masih menggunakan list lokal di memori:
+Penyimpanan utama menggunakan database Supabase. Aplikasi tetap memakai `orderList` sebagai cache sementara di sisi Flutter agar data mudah ditampilkan ulang antar halaman.
 
 ```dart
 List<Order> orderList = [];
 ```
 
-Artinya data akan hilang jika aplikasi ditutup atau restart.
+Data pesanan tetap tersimpan di Supabase selama proses simpan ke database berhasil.
 
 ## 7. Kebutuhan Non-Fungsional
 
@@ -163,22 +324,18 @@ Artinya data akan hilang jika aplikasi ditutup atau restart.
 
 ## 8. Batasan Saat Ini
 
-- Belum ada backend/database aktif.
-- Folder `supabase` tersedia, tetapi kode aplikasi belum menggunakan Supabase.
-- Login belum memiliki autentikasi sungguhan.
-- Data pesanan belum persisten.
+- Autentikasi masih menggunakan tabel demo `app_users`, belum menggunakan Supabase Auth resmi.
+- Password akun demo masih disimpan untuk kebutuhan simulasi aplikasi.
 - QRIS masih berupa placeholder.
-- Tidak ada role user/admin yang benar-benar dipisahkan.
 - Profil belum masuk ke bottom navigation.
 - Belum ada fitur alamat jemput/antar.
 - Belum ada notifikasi status pesanan.
 
 ## 9. Rekomendasi Pengembangan Berikutnya
 
-- Integrasi Supabase untuk menyimpan pesanan.
-- Implementasi autentikasi user.
-- Tambahkan role admin dan customer.
-- Pisahkan halaman admin untuk update status.
+- Migrasi autentikasi demo ke Supabase Auth resmi.
+- Terapkan enkripsi atau hashing password jika tetap memakai tabel user khusus.
+- Perkuat RLS agar akses pelanggan benar-benar dibatasi di level database.
 - Tambahkan alamat pelanggan dan opsi antar/jemput.
 - Tambahkan QRIS asli atau upload bukti transfer.
 - Tambahkan persistensi data lokal sementara menggunakan shared preferences atau database lokal.

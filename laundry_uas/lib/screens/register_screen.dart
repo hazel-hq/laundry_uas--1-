@@ -12,6 +12,7 @@ class RegisterScreen extends StatefulWidget {
 }
 
 class _RegisterScreenState extends State<RegisterScreen> {
+  final _email = TextEditingController();
   final _name = TextEditingController();
   final _username = TextEditingController();
   final _password = TextEditingController();
@@ -24,13 +25,21 @@ class _RegisterScreenState extends State<RegisterScreen> {
   static const _purple = Color(0xFF6C63FF);
 
   Future<void> _register() async {
-    if (_name.text.trim().isEmpty ||
+    final email = _email.text.trim();
+
+    if (email.isEmpty ||
+        _name.text.trim().isEmpty ||
         _username.text.trim().isEmpty ||
         _password.text.length < 6) {
       setState(
         () => _error =
-            'Nama, username, dan password minimal 6 karakter wajib diisi',
+            'Email, nama, username, dan password minimal 6 karakter wajib diisi',
       );
+      return;
+    }
+
+    if (!email.contains('@') || !email.contains('.')) {
+      setState(() => _error = 'Format email belum valid');
       return;
     }
 
@@ -41,6 +50,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
     try {
       final user = await _authRepository.signUpCustomer(
+        email: email,
         fullName: _name.text,
         username: _username.text,
         password: _password.text,
@@ -57,9 +67,18 @@ class _RegisterScreenState extends State<RegisterScreen> {
       if (!mounted) return;
       setState(() {
         _loading = false;
-        _error = 'Gagal daftar. Username mungkin sudah dipakai.';
+        _error = 'Gagal daftar. Email atau username mungkin sudah dipakai.';
       });
     }
+  }
+
+  @override
+  void dispose() {
+    _email.dispose();
+    _name.dispose();
+    _username.dispose();
+    _password.dispose();
+    super.dispose();
   }
 
   @override
@@ -94,6 +113,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
               ),
               const SizedBox(height: 18),
               _buildField(
+                controller: _email,
+                label: 'Email',
+                icon: Icons.email_outlined,
+                keyboardType: TextInputType.emailAddress,
+                autofillHints: const [AutofillHints.email],
+              ),
+              const SizedBox(height: 12),
+              _buildField(
                 controller: _name,
                 label: 'Nama lengkap',
                 icon: Icons.badge_outlined,
@@ -103,6 +130,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 controller: _username,
                 label: 'Username',
                 icon: Icons.person_outline,
+                autofillHints: const [AutofillHints.username],
               ),
               const SizedBox(height: 12),
               _buildField(
@@ -110,6 +138,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 label: 'Password',
                 icon: Icons.lock_outline,
                 obscure: _obscure,
+                autofillHints: const [AutofillHints.newPassword],
                 suffix: IconButton(
                   icon: Icon(
                     _obscure
@@ -158,10 +187,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
     required IconData icon,
     bool obscure = false,
     Widget? suffix,
+    TextInputType? keyboardType,
+    Iterable<String>? autofillHints,
   }) {
     return TextField(
       controller: controller,
       obscureText: obscure,
+      keyboardType: keyboardType,
+      autofillHints: autofillHints,
       style: const TextStyle(fontSize: 14),
       decoration: InputDecoration(
         labelText: label,

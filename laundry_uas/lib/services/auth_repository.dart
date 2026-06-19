@@ -9,12 +9,14 @@ class AuthRepository {
   final SupabaseClient _client;
 
   Future<AppUser?> signIn({
+    required String email,
     required String username,
     required String password,
   }) async {
     final row = await _client
         .from('app_users')
         .select()
+        .eq('email', email.trim().toLowerCase())
         .eq('username', username.trim())
         .eq('password', password)
         .maybeSingle();
@@ -24,6 +26,7 @@ class AuthRepository {
   }
 
   Future<AppUser> signUpCustomer({
+    required String email,
     required String fullName,
     required String username,
     required String password,
@@ -31,6 +34,7 @@ class AuthRepository {
     final row = await _client
         .from('app_users')
         .insert({
+          'email': email.trim().toLowerCase(),
           'full_name': fullName.trim(),
           'username': username.trim(),
           'password': password,
