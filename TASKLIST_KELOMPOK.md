@@ -10,11 +10,11 @@ Pembagian tugas dibuat berdasarkan PRD FreshLaundry dan memastikan setiap anggot
 
 ## Ringkasan Pembagian
 
-| Anggota | Fokus Utama | Output Utama |
-| --- | --- | --- |
-| Adzriel | Database, model, dan service Supabase | Database berjalan, data tersimpan, query aplikasi berfungsi |
-| Faruq | UI/UX pelanggan dan admin | Tampilan aplikasi lengkap dan rapi |
-| Yanita | Validasi, alur aplikasi, testing, dan dokumentasi | Aplikasi sesuai PRD, minim bug, dan terdokumentasi |
+| Anggota | Fokus Utama                                       | Output Utama                                                |
+| ------- | ------------------------------------------------- | ----------------------------------------------------------- |
+| Adzriel | Database, model, dan service Supabase             | Database berjalan, data tersimpan, query aplikasi berfungsi |
+| Faruq   | UI/UX pelanggan dan admin                         | Tampilan aplikasi lengkap dan rapi                          |
+| Yanita  | Validasi, alur aplikasi, testing, dan dokumentasi | Aplikasi sesuai PRD, minim bug, dan terdokumentasi          |
 
 ## 1. Task List Adzriel
 
@@ -151,26 +151,26 @@ Fokus: validasi, alur aplikasi, testing, dan dokumentasi.
 
 ## Pembagian Modul Berdasarkan PRD
 
-| Modul PRD | Penanggung Jawab |
-| --- | --- |
-| Ringkasan produk | Yanita |
-| Tujuan produk | Yanita |
-| Target pengguna | Yanita |
-| Login | Faruq, Yanita |
-| Register pelanggan | Faruq, Yanita |
-| Role pelanggan dan admin | Adzriel, Yanita |
-| Home pelanggan | Faruq |
-| Buat pesanan | Faruq, Adzriel, Yanita |
-| Riwayat pesanan | Faruq, Adzriel |
-| Detail pesanan | Faruq |
-| Tracking pesanan | Faruq, Adzriel, Yanita |
-| Pembayaran | Faruq, Adzriel, Yanita |
-| Dashboard admin | Faruq, Adzriel |
-| Database Supabase | Adzriel |
-| Validasi input | Yanita |
-| Error handling | Yanita |
-| Testing | Yanita |
-| Dokumentasi | Yanita |
+| Modul PRD                | Penanggung Jawab       |
+| ------------------------ | ---------------------- |
+| Ringkasan produk         | Yanita                 |
+| Tujuan produk            | Yanita                 |
+| Target pengguna          | Yanita                 |
+| Login                    | Faruq, Yanita          |
+| Register pelanggan       | Faruq, Yanita          |
+| Role pelanggan dan admin | Adzriel, Yanita        |
+| Home pelanggan           | Faruq                  |
+| Buat pesanan             | Faruq, Adzriel, Yanita |
+| Riwayat pesanan          | Faruq, Adzriel         |
+| Detail pesanan           | Faruq                  |
+| Tracking pesanan         | Faruq, Adzriel, Yanita |
+| Pembayaran               | Faruq, Adzriel, Yanita |
+| Dashboard admin          | Faruq, Adzriel         |
+| Database Supabase        | Adzriel                |
+| Validasi input           | Yanita                 |
+| Error handling           | Yanita                 |
+| Testing                  | Yanita                 |
+| Dokumentasi              | Yanita                 |
 
 ## Checklist Akhir
 
