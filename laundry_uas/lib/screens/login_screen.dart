@@ -12,6 +12,7 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
+  final _email = TextEditingController();
   final _username = TextEditingController();
   final _password = TextEditingController();
   bool _obscure = true;
@@ -36,8 +37,16 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _login() async {
-    if (_username.text.trim().isEmpty || _password.text.isEmpty) {
-      setState(() => _error = 'Username dan password wajib diisi');
+    final email = _email.text.trim();
+    final username = _username.text.trim();
+
+    if (email.isEmpty || username.isEmpty || _password.text.isEmpty) {
+      setState(() => _error = 'Email, username, dan password wajib diisi');
+      return;
+    }
+
+    if (!email.contains('@') || !email.contains('.')) {
+      setState(() => _error = 'Format email belum valid');
       return;
     }
 
@@ -48,7 +57,8 @@ class _LoginScreenState extends State<LoginScreen> {
 
     try {
       final user = await _authRepository.signIn(
-        username: _username.text,
+        email: email,
+        username: username,
         password: _password.text,
       );
 
@@ -56,7 +66,7 @@ class _LoginScreenState extends State<LoginScreen> {
       if (user == null) {
         setState(() {
           _loading = false;
-          _error = 'Username atau password salah';
+          _error = 'Email, username, atau password salah';
         });
         return;
       }
@@ -75,6 +85,14 @@ class _LoginScreenState extends State<LoginScreen> {
   void _loginGuest() {
     currentAppUser = null;
     _goHome();
+  }
+
+  @override
+  void dispose() {
+    _email.dispose();
+    _username.dispose();
+    _password.dispose();
+    super.dispose();
   }
 
   @override
@@ -138,7 +156,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     const SizedBox(height: 6),
                     Text(
-                      'Demo: pelanggan1/123456, pelanggan2/123456, admin/admin123',
+                      'Demo: pelanggan1@freshlaundry.test / pelanggan1 / 123456',
                       style: TextStyle(
                         fontSize: 11,
                         color: Colors.grey.shade500,
@@ -146,9 +164,18 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     const SizedBox(height: 20),
                     _buildField(
+                      controller: _email,
+                      label: 'Email',
+                      icon: Icons.email_outlined,
+                      keyboardType: TextInputType.emailAddress,
+                      autofillHints: const [AutofillHints.email],
+                    ),
+                    const SizedBox(height: 14),
+                    _buildField(
                       controller: _username,
                       label: 'Username',
                       icon: Icons.person_outline,
+                      autofillHints: const [AutofillHints.username],
                     ),
                     const SizedBox(height: 14),
                     _buildField(
@@ -156,6 +183,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       label: 'Password',
                       icon: Icons.lock_outline,
                       obscure: _obscure,
+                      autofillHints: const [AutofillHints.password],
                       suffix: IconButton(
                         icon: Icon(
                           _obscure
@@ -250,10 +278,14 @@ class _LoginScreenState extends State<LoginScreen> {
     required IconData icon,
     bool obscure = false,
     Widget? suffix,
+    TextInputType? keyboardType,
+    Iterable<String>? autofillHints,
   }) {
     return TextField(
       controller: controller,
       obscureText: obscure,
+      keyboardType: keyboardType,
+      autofillHints: autofillHints,
       style: const TextStyle(fontSize: 14),
       decoration: InputDecoration(
         labelText: label,
