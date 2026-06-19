@@ -57,6 +57,7 @@ create table if not exists public.profiles (
 
 create table if not exists public.app_users (
   id uuid primary key default gen_random_uuid(),
+  email text not null unique,
   username text not null unique,
   password text not null,
   full_name text not null,
@@ -100,6 +101,21 @@ create table if not exists public.orders (
 alter table public.orders
 add column if not exists customer_username text;
 
+alter table public.app_users
+add column if not exists email text;
+
+update public.app_users
+set email = case username
+  when 'pelanggan1' then 'pelanggan1@freshlaundry.test'
+  when 'pelanggan2' then 'pelanggan2@freshlaundry.test'
+  when 'admin' then 'admin@freshlaundry.test'
+  else lower(username || '@freshlaundry.test')
+end
+where email is null;
+
+alter table public.app_users
+alter column email set not null;
+
 create table if not exists public.order_items (
   id uuid primary key default gen_random_uuid(),
   order_id uuid not null references public.orders(id) on delete cascade,
@@ -134,6 +150,7 @@ create table if not exists public.order_status_histories (
 
 create index if not exists profiles_role_idx on public.profiles(role);
 create index if not exists app_users_role_idx on public.app_users(role);
+create unique index if not exists app_users_email_unique_idx on public.app_users(lower(email));
 create index if not exists orders_customer_id_idx on public.orders(customer_id);
 create index if not exists orders_customer_username_idx on public.orders(customer_username);
 create index if not exists orders_status_idx on public.orders(status);
@@ -312,13 +329,14 @@ set
   estimated_hours = excluded.estimated_hours,
   is_active = true;
 
-insert into public.app_users (username, password, full_name, role)
+insert into public.app_users (email, username, password, full_name, role)
 values
-  ('pelanggan1', '123456', 'Pelanggan Satu', 'customer'),
-  ('pelanggan2', '123456', 'Pelanggan Dua', 'customer'),
-  ('admin', 'admin123', 'Admin Laundry', 'admin')
+  ('pelanggan1@freshlaundry.test', 'pelanggan1', '123456', 'Pelanggan Satu', 'customer'),
+  ('pelanggan2@freshlaundry.test', 'pelanggan2', '123456', 'Pelanggan Dua', 'customer'),
+  ('admin@freshlaundry.test', 'admin', 'admin123', 'Admin Laundry', 'admin')
 on conflict (username) do update
 set
+  email = excluded.email,
   password = excluded.password,
   full_name = excluded.full_name,
   role = excluded.role;
