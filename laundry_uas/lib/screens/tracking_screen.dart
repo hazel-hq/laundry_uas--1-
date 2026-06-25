@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../models/app_user.dart';
 import '../models/order.dart';
 import '../models/order_data.dart';
 
@@ -101,6 +102,7 @@ class _TrackingScreenState extends State<TrackingScreen> {
   @override
   Widget build(BuildContext context) {
     final current = _allStatus[_currentIdx];
+    final bool isAdmin = currentAppUser?.isAdmin ?? false;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F6FA),
@@ -386,106 +388,149 @@ class _TrackingScreenState extends State<TrackingScreen> {
 
             const SizedBox(height: 20),
 
-            // Panel update status (admin only)
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: Colors.grey.shade100, width: 0.5),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 3,
-                        ),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFFAEEDA),
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: const Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              Icons.admin_panel_settings_outlined,
-                              size: 13,
-                              color: Color(0xFF854F0B),
-                            ),
-                            SizedBox(width: 4),
-                            Text(
-                              'Admin',
-                              style: TextStyle(
-                                fontSize: 11,
-                                color: Color(0xFF854F0B),
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      const Text(
-                        'Update status',
+            if (!isAdmin) ...[
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFEEEDFE),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(
+                    color: const Color(0xFF6C63FF),
+                    width: 0.5,
+                  ),
+                ),
+                child: const Row(
+                  children: [
+                    Icon(
+                      Icons.info_outline,
+                      color: Color(0xFF6C63FF),
+                      size: 20,
+                    ),
+                    SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        'Status pesanan diperbarui oleh admin laundry.',
                         style: TextStyle(
+                          color: Color(0xFF3C3489),
                           fontSize: 13,
                           fontWeight: FontWeight.w500,
-                          color: Colors.grey,
                         ),
                       ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: List.generate(_allStatus.length, (i) {
-                      final isActive = i == _currentIdx;
-                      return GestureDetector(
-                        onTap: _saving ? null : () => _updateStatus(i),
-                        child: Container(
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 20),
+            ],
+
+            // Panel update status (admin only)
+            if (isAdmin)
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: Colors.grey.shade100, width: 0.5),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
                           padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 8,
+                            horizontal: 8,
+                            vertical: 3,
                           ),
                           decoration: BoxDecoration(
-                            color: isActive ? _purple : const Color(0xFFF5F6FA),
-                            borderRadius: BorderRadius.circular(10),
-                            border: Border.all(
-                              color: isActive ? _purple : Colors.grey.shade200,
-                              width: 0.5,
-                            ),
+                            color: const Color(0xFFFAEEDA),
+                            borderRadius: BorderRadius.circular(6),
                           ),
-                          child: Row(
+                          child: const Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               Icon(
-                                _allStatus[i].icon,
-                                size: 14,
-                                color: isActive ? Colors.white : Colors.grey,
+                                Icons.admin_panel_settings_outlined,
+                                size: 13,
+                                color: Color(0xFF854F0B),
                               ),
-                              const SizedBox(width: 6),
+                              SizedBox(width: 4),
                               Text(
-                                _allStatus[i].label,
+                                'Admin',
                                 style: TextStyle(
-                                  fontSize: 12,
+                                  fontSize: 11,
+                                  color: Color(0xFF854F0B),
                                   fontWeight: FontWeight.w500,
-                                  color: isActive ? Colors.white : Colors.grey,
                                 ),
                               ),
                             ],
                           ),
                         ),
-                      );
-                    }),
-                  ),
-                ],
+                        const SizedBox(width: 8),
+                        const Text(
+                          'Update status',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.grey,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: List.generate(_allStatus.length, (i) {
+                        final isActive = i == _currentIdx;
+                        return GestureDetector(
+                          onTap: _saving ? null : () => _updateStatus(i),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 8,
+                            ),
+                            decoration: BoxDecoration(
+                              color: isActive
+                                  ? _purple
+                                  : const Color(0xFFF5F6FA),
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(
+                                color: isActive
+                                    ? _purple
+                                    : Colors.grey.shade200,
+                                width: 0.5,
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  _allStatus[i].icon,
+                                  size: 14,
+                                  color: isActive ? Colors.white : Colors.grey,
+                                ),
+                                const SizedBox(width: 6),
+                                Text(
+                                  _allStatus[i].label,
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w500,
+                                    color: isActive
+                                        ? Colors.white
+                                        : Colors.grey,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      }),
+                    ),
+                  ],
+                ),
               ),
-            ),
 
             const SizedBox(height: 24),
           ],
