@@ -58,6 +58,7 @@ Total = berat x harga layanan
   - Berat wajib diisi.
   - Berat harus lebih dari 0.
   - Setelah berhasil, pesanan disimpan ke database Supabase.
+- Setelah pesanan berhasil dibuat, sistem langsung mengarahkan pelanggan ke halaman Pembayaran.
 
 ### 4.4 Riwayat Pesanan
 
@@ -186,7 +187,7 @@ Alur aplikasi dibagi berdasarkan peran pengguna, yaitu pelanggan dan admin. Pemi
 9. Jika validasi berhasil, sistem menyimpan pesanan ke database dengan status awal:
    - Status pesanan: `Menunggu`
    - Status pembayaran: `Belum dibayar`
-10. Sistem mengarahkan pelanggan kembali ke Home atau Riwayat Pesanan.
+10. Sistem langsung mengarahkan pelanggan ke halaman Pembayaran untuk menyelesaikan pembayaran pesanan tersebut.
 
 ### 5.4 Alur Pelanggan Melihat Riwayat dan Detail Pesanan
 
@@ -228,7 +229,7 @@ Alur aplikasi dibagi berdasarkan peran pengguna, yaitu pelanggan dan admin. Pemi
 
 ### 5.6 Alur Pembayaran Pelanggan
 
-1. Pelanggan membuka halaman Pembayaran dari detail pesanan.
+1. Pelanggan diarahkan ke halaman Pembayaran setelah berhasil membuat pesanan, atau membuka halaman Pembayaran dari detail pesanan jika pesanan belum dibayar.
 2. Sistem menampilkan ringkasan tagihan:
    - Nama pelanggan
    - Layanan
