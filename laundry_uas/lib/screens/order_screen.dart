@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/order.dart';
 import '../models/order_data.dart';
+import 'payment_screen.dart';
 
 class OrderScreen extends StatefulWidget {
   const OrderScreen({super.key});
@@ -65,7 +66,7 @@ class _OrderScreenState extends State<OrderScreen> {
     setState(() => _saving = true);
 
     try {
-      await orderRepository.createOrder(
+      final order = await orderRepository.createOrder(
         Order(
           id: DateTime.now().millisecondsSinceEpoch.toString(),
           nama: _nama.text,
@@ -83,7 +84,10 @@ class _OrderScreenState extends State<OrderScreen> {
           backgroundColor: Color(0xFF2E7D32),
         ),
       );
-      Navigator.pop(context);
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => PaymentScreen(order: order)),
+      );
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
