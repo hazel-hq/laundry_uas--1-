@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import '../models/order.dart';
 import '../models/order_data.dart';
+import '../theme/app_theme.dart';
 import 'order_detail_screen.dart';
 
 class HistoryScreen extends StatefulWidget {
@@ -11,16 +13,24 @@ class HistoryScreen extends StatefulWidget {
 
 class _HistoryScreenState extends State<HistoryScreen> {
   String _filter = 'Semua';
-  final _filters = ['Semua', 'Proses', 'Selesai', 'Diantar'];
+  final _filters = ['Semua', 'Cuci', 'Setrika', 'Express', 'Cuci+Setrika'];
   bool _loading = true;
   String? _error;
+  final _searchController = TextEditingController();
+  String _searchQuery = '';
 
-  static const _purple = Color(0xFF6C63FF);
+  static const _purple = AppTheme.purple;
 
   @override
   void initState() {
     super.initState();
     _loadOrders();
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
   }
 
   Future<void> _loadOrders() async {
@@ -65,20 +75,44 @@ class _HistoryScreenState extends State<HistoryScreen> {
     }
   }
 
-  List get _filtered {
-    if (_filter == 'Semua') return orderList;
-    if (_filter == 'Proses') {
-      return orderList
-          .where(
-            (o) =>
-                o.status.toLowerCase() != 'selesai' &&
-                o.status.toLowerCase() != 'diantar',
-          )
-          .toList();
-    }
-    return orderList
-        .where((o) => o.status.toLowerCase() == _filter.toLowerCase())
+  List<Order> get _filtered {
+    final completedOrders = orderList
+        .where((o) => o.status.toLowerCase() == 'selesai')
         .toList();
+    final filteredByService = _filter == 'Semua'
+        ? completedOrders
+        : completedOrders
+              .where((o) => o.layanan.toLowerCase() == _filter.toLowerCase())
+              .toList();
+
+    final query = _searchQuery.trim().toLowerCase();
+    if (query.isEmpty) return filteredByService;
+
+    return filteredByService
+        .where(
+          (o) =>
+              o.nama.toLowerCase().contains(query) ||
+              o.orderCode.toLowerCase().contains(query),
+        )
+        .toList();
+  }
+
+  double get _totalPengeluaran => orderList
+      .where((o) => o.status.toLowerCase() == 'selesai')
+      .fold(0, (total, order) => total + order.total);
+
+  String get _layananFavorit {
+    final completed = orderList.where(
+      (o) => o.status.toLowerCase() == 'selesai',
+    );
+    final counts = <String, int>{};
+    for (final order in completed) {
+      counts[order.layanan] = (counts[order.layanan] ?? 0) + 1;
+    }
+    if (counts.isEmpty) return '-';
+    final sorted = counts.entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
+    return sorted.first.key;
   }
 
   @override
@@ -86,343 +120,426 @@ class _HistoryScreenState extends State<HistoryScreen> {
     final selesai = orderList
         .where((o) => o.status.toLowerCase() == 'selesai')
         .length;
-    final proses = orderList
-        .where(
-          (o) =>
-              o.status.toLowerCase() != 'selesai' &&
-              o.status.toLowerCase() != 'diantar',
-        )
-        .length;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F6FA),
-      body: CustomScrollView(
-        slivers: [
-          // App bar
-          SliverAppBar(
-            expandedHeight: 90,
-            pinned: true,
-            automaticallyImplyLeading: false,
-            backgroundColor: _purple,
-            flexibleSpace: FlexibleSpaceBar(
-              titlePadding: const EdgeInsets.only(left: 16, bottom: 12),
-              title: Column(
-                mainAxisAlignment: MainAxisAlignment.end,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Riwayat pesanan',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 17,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  Text(
-                    '$proses pesanan aktif',
-                    style: const TextStyle(
-                      color: Color(0xCCFFFFFF),
-                      fontSize: 11,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-
-          SliverToBoxAdapter(
-            child: Column(
-              children: [
-                // Summary
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(12, 12, 12, 0),
-                  child: Row(
-                    children: [
-                      _SummaryCard(
-                        label: 'Total',
-                        value: '${orderList.length}',
-                        color: const Color(0xFF1a1a2e),
-                      ),
-                      const SizedBox(width: 8),
-                      _SummaryCard(
-                        label: 'Selesai',
-                        value: '$selesai',
-                        color: const Color(0xFF2E7D32),
-                      ),
-                      const SizedBox(width: 8),
-                      _SummaryCard(
-                        label: 'Proses',
-                        value: '$proses',
-                        color: const Color(0xFFE65100),
-                      ),
-                    ],
-                  ),
-                ),
-
-                // Filter chips
-                SizedBox(
-                  height: 48,
-                  child: ListView.separated(
-                    scrollDirection: Axis.horizontal,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 8,
-                    ),
-                    itemCount: _filters.length,
-                    separatorBuilder: (_, index) => const SizedBox(width: 8),
-                    itemBuilder: (_, i) {
-                      final active = _filter == _filters[i];
-                      return GestureDetector(
-                        onTap: () => setState(() => _filter = _filters[i]),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 14,
-                            vertical: 5,
-                          ),
-                          decoration: BoxDecoration(
-                            color: active ? _purple : Colors.white,
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(
-                              color: active ? _purple : Colors.grey.shade300,
-                              width: 0.5,
-                            ),
-                          ),
-                          child: Text(
-                            _filters[i],
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: active ? Colors.white : Colors.grey,
-                            ),
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          // List atau empty state
-          if (_loading)
-            const SliverFillRemaining(
-              child: Center(child: CircularProgressIndicator(color: _purple)),
-            )
-          else if (_error != null)
-            SliverFillRemaining(
-              child: Center(
-                child: Padding(
-                  padding: const EdgeInsets.all(24),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.cloud_off_outlined,
-                        size: 48,
-                        color: Colors.red.shade200,
-                      ),
-                      const SizedBox(height: 12),
-                      Text(
-                        'Gagal memuat data Supabase',
-                        style: TextStyle(
-                          color: Colors.red.shade400,
-                          fontSize: 14,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        _error!,
-                        style: TextStyle(
-                          color: Colors.grey.shade500,
-                          fontSize: 11,
-                        ),
-                        textAlign: TextAlign.center,
-                        maxLines: 3,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 12),
-                      OutlinedButton(
-                        onPressed: _loadOrders,
-                        child: const Text('Coba lagi'),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            )
-          else if (_filtered.isEmpty)
-            SliverFillRemaining(
-              child: Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
+      body: RefreshIndicator(
+        onRefresh: _loadOrders,
+        color: _purple,
+        child: CustomScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          slivers: [
+            // App bar
+            SliverAppBar(
+              expandedHeight: 90,
+              pinned: true,
+              automaticallyImplyLeading: false,
+              backgroundColor: _purple,
+              flexibleSpace: FlexibleSpaceBar(
+                titlePadding: const EdgeInsets.only(left: 16, bottom: 12),
+                title: Column(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Icon(
-                      Icons.inbox_outlined,
-                      size: 48,
-                      color: Colors.grey.shade300,
-                    ),
-                    const SizedBox(height: 12),
-                    Text(
-                      'Belum ada pesanan',
+                    const Text(
+                      'Riwayat pesanan',
                       style: TextStyle(
-                        color: Colors.grey.shade400,
-                        fontSize: 14,
+                        color: Colors.white,
+                        fontSize: 17,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    Text(
+                      '$selesai pesanan selesai',
+                      style: const TextStyle(
+                        color: Color(0xCCFFFFFF),
+                        fontSize: 11,
                       ),
                     ),
                   ],
                 ),
               ),
-            )
-          else
-            SliverPadding(
-              padding: const EdgeInsets.fromLTRB(12, 4, 12, 24),
-              sliver: SliverList(
-                delegate: SliverChildBuilderDelegate((context, i) {
-                  final order = _filtered[i];
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 10),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(14),
-                        border: Border.all(
-                          color: Colors.grey.shade100,
-                          width: 0.5,
+            ),
+
+            SliverToBoxAdapter(
+              child: Column(
+                children: [
+                  // Summary
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(12, 12, 12, 0),
+                    child: Row(
+                      children: [
+                        _SummaryCard(
+                          label: 'Total',
+                          value: '$selesai',
+                          color: const Color(0xFF1a1a2e),
+                        ),
+                        const SizedBox(width: 8),
+                        _SummaryCard(
+                          label: 'Pengeluaran',
+                          value: 'Rp ${_totalPengeluaran.toStringAsFixed(0)}',
+                          color: const Color(0xFF2E7D32),
+                        ),
+                        const SizedBox(width: 8),
+                        _SummaryCard(
+                          label: 'Favorit',
+                          value: _layananFavorit,
+                          color: const Color(0xFFE65100),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(12, 12, 12, 0),
+                    child: TextField(
+                      controller: _searchController,
+                      onChanged: (value) =>
+                          setState(() => _searchQuery = value),
+                      style: const TextStyle(fontSize: 13),
+                      decoration: InputDecoration(
+                        hintText: 'Cari nama atau kode pesanan',
+                        hintStyle: TextStyle(
+                          fontSize: 13,
+                          color: Colors.grey.shade400,
+                        ),
+                        prefixIcon: Icon(
+                          Icons.search,
+                          size: 20,
+                          color: Colors.grey.shade400,
+                        ),
+                        suffixIcon: _searchQuery.isEmpty
+                            ? null
+                            : IconButton(
+                                icon: const Icon(Icons.close, size: 18),
+                                onPressed: () {
+                                  _searchController.clear();
+                                  setState(() => _searchQuery = '');
+                                },
+                              ),
+                        filled: true,
+                        fillColor: Colors.white,
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 12,
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(
+                            AppTheme.radiusMd,
+                          ),
+                          borderSide: BorderSide.none,
                         ),
                       ),
-                      padding: const EdgeInsets.all(14),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // Baris atas: ID + badge status
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    '#${order.orderCode}',
-                                    style: TextStyle(
-                                      fontSize: 11,
-                                      color: Colors.grey.shade400,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 2),
-                                  Text(
-                                    order.nama,
-                                    style: const TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w500,
-                                      color: Color(0xFF1a1a2e),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 10,
-                                  vertical: 3,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: _statusBg(order.status),
-                                  borderRadius: BorderRadius.circular(20),
-                                ),
-                                child: Text(
-                                  order.status,
-                                  style: TextStyle(
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w500,
-                                    color: _statusColor(order.status),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-
-                          const Divider(height: 18, thickness: 0.5),
-
-                          Row(
-                            children: [
-                              _MetaItem(label: 'Layanan', value: order.layanan),
-                              const SizedBox(width: 16),
-                              _MetaItem(
-                                label: 'Berat',
-                                value: '${order.berat} kg',
-                              ),
-                              const SizedBox(width: 16),
-                              _MetaItem(label: 'Tanggal', value: order.tanggal),
-                            ],
-                          ),
-
-                          const SizedBox(height: 10),
-
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'Total',
-                                    style: TextStyle(
-                                      fontSize: 11,
-                                      color: Colors.grey.shade400,
-                                    ),
-                                  ),
-                                  Text(
-                                    'Rp ${order.total.toStringAsFixed(0)}',
-                                    style: const TextStyle(
-                                      fontSize: 15,
-                                      fontWeight: FontWeight.w500,
-                                      color: _purple,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              OutlinedButton(
-                                onPressed: () async {
-                                  await Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (_) =>
-                                          OrderDetailScreen(order: order),
-                                    ),
-                                  );
-                                  await _loadOrders();
-                                },
-                                style: OutlinedButton.styleFrom(
-                                  foregroundColor: _purple,
-                                  side: const BorderSide(
-                                    color: _purple,
-                                    width: 0.5,
-                                  ),
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 12,
-                                    vertical: 4,
-                                  ),
-                                  minimumSize: Size.zero,
-                                  tapTargetSize:
-                                      MaterialTapTargetSize.shrinkWrap,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                ),
-                                child: const Text(
-                                  'Lihat detail',
-                                  style: TextStyle(fontSize: 11),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
                     ),
-                  );
-                }, childCount: _filtered.length),
+                  ),
+
+                  // Filter chips
+                  SizedBox(
+                    height: 48,
+                    child: ListView.separated(
+                      scrollDirection: Axis.horizontal,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
+                      itemCount: _filters.length,
+                      separatorBuilder: (_, index) => const SizedBox(width: 8),
+                      itemBuilder: (_, i) {
+                        final active = _filter == _filters[i];
+                        return GestureDetector(
+                          onTap: () => setState(() => _filter = _filters[i]),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 14,
+                              vertical: 5,
+                            ),
+                            decoration: BoxDecoration(
+                              color: active ? _purple : Colors.white,
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(
+                                color: active ? _purple : Colors.grey.shade300,
+                                width: 0.5,
+                              ),
+                            ),
+                            child: Text(
+                              _filters[i],
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: active ? Colors.white : Colors.grey,
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ],
               ),
             ),
-        ],
+
+            // List atau empty state
+            if (_loading)
+              const SliverPadding(
+                padding: EdgeInsets.fromLTRB(12, 4, 12, 24),
+                sliver: SliverToBoxAdapter(child: _HistorySkeletonList()),
+              )
+            else if (_error != null)
+              SliverFillRemaining(
+                child: Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.cloud_off_outlined,
+                          size: 48,
+                          color: Colors.red.shade200,
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          'Gagal memuat data Supabase',
+                          style: TextStyle(
+                            color: Colors.red.shade400,
+                            fontSize: 14,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          _error!,
+                          style: TextStyle(
+                            color: Colors.grey.shade500,
+                            fontSize: 11,
+                          ),
+                          textAlign: TextAlign.center,
+                          maxLines: 3,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 12),
+                        OutlinedButton(
+                          onPressed: _loadOrders,
+                          child: const Text('Coba lagi'),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              )
+            else if (_filtered.isEmpty)
+              SliverFillRemaining(
+                child: Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        _searchQuery.isEmpty
+                            ? Icons.receipt_long_outlined
+                            : Icons.search_off_outlined,
+                        size: 56,
+                        color: Colors.grey.shade300,
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        _searchQuery.isEmpty
+                            ? 'Belum ada pesanan dengan status ini'
+                            : 'Pesanan tidak ditemukan',
+                        style: TextStyle(
+                          color: Colors.grey.shade400,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        _searchQuery.isEmpty
+                            ? 'Coba pilih filter lain atau buat pesanan baru.'
+                            : 'Gunakan nama pelanggan atau kode pesanan lain.',
+                        style: TextStyle(
+                          color: Colors.grey.shade400,
+                          fontSize: 12,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  ),
+                ),
+              )
+            else
+              SliverPadding(
+                padding: const EdgeInsets.fromLTRB(12, 4, 12, 24),
+                sliver: SliverList(
+                  delegate: SliverChildBuilderDelegate((context, i) {
+                    final order = _filtered[i];
+                    return TweenAnimationBuilder<double>(
+                      tween: Tween(begin: 0, end: 1),
+                      duration: Duration(
+                        milliseconds: 260 + (i * 45).clamp(0, 240),
+                      ),
+                      curve: Curves.easeOutCubic,
+                      builder: (context, value, child) {
+                        return Opacity(
+                          opacity: value,
+                          child: Transform.translate(
+                            offset: Offset(0, 12 * (1 - value)),
+                            child: child,
+                          ),
+                        );
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.only(bottom: 10),
+                        child: Material(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(
+                            AppTheme.radiusMd,
+                          ),
+                          elevation: 0,
+                          shadowColor: Colors.transparent,
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(
+                              AppTheme.radiusMd,
+                            ),
+                            onTap: () async {
+                              await Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) =>
+                                      OrderDetailScreen(order: order),
+                                ),
+                              );
+                              await _loadOrders();
+                            },
+                            child: Container(
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(
+                                  AppTheme.radiusMd,
+                                ),
+                                border: Border.all(
+                                  color: Colors.grey.shade100,
+                                  width: 0.5,
+                                ),
+                                boxShadow: AppTheme.softShadow,
+                              ),
+                              padding: const EdgeInsets.all(14),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  // Baris atas: ID + badge status
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            '#${order.orderCode}',
+                                            style: TextStyle(
+                                              fontSize: 11,
+                                              color: Colors.grey.shade400,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 2),
+                                          Text(
+                                            order.nama,
+                                            style: const TextStyle(
+                                              fontSize: 14,
+                                              fontWeight: FontWeight.w500,
+                                              color: Color(0xFF1a1a2e),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 10,
+                                          vertical: 3,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: _statusBg(order.status),
+                                          borderRadius: BorderRadius.circular(
+                                            20,
+                                          ),
+                                        ),
+                                        child: Text(
+                                          order.status,
+                                          style: TextStyle(
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.w500,
+                                            color: _statusColor(order.status),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+
+                                  const Divider(height: 18, thickness: 0.5),
+
+                                  Row(
+                                    children: [
+                                      _MetaItem(
+                                        label: 'Layanan',
+                                        value: order.layanan,
+                                      ),
+                                      const SizedBox(width: 16),
+                                      _MetaItem(
+                                        label: 'Berat',
+                                        value: '${order.berat} kg',
+                                      ),
+                                      const SizedBox(width: 16),
+                                      _MetaItem(
+                                        label: 'Tanggal',
+                                        value: order.tanggal,
+                                      ),
+                                    ],
+                                  ),
+
+                                  const SizedBox(height: 10),
+
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            'Total',
+                                            style: TextStyle(
+                                              fontSize: 11,
+                                              color: Colors.grey.shade400,
+                                            ),
+                                          ),
+                                          Text(
+                                            'Rp ${order.total.toStringAsFixed(0)}',
+                                            style: const TextStyle(
+                                              fontSize: 15,
+                                              fontWeight: FontWeight.w500,
+                                              color: _purple,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      const Icon(
+                                        Icons.chevron_right,
+                                        color: _purple,
+                                        size: 20,
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    );
+                  }, childCount: _filtered.length),
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }
@@ -444,8 +561,9 @@ class _SummaryCard extends StatelessWidget {
         padding: const EdgeInsets.all(10),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(AppTheme.radiusSm),
           border: Border.all(color: Colors.grey.shade100, width: 0.5),
+          boxShadow: AppTheme.softShadow,
         ),
         child: Column(
           children: [
@@ -461,6 +579,11 @@ class _SummaryCard extends StatelessWidget {
             Text(
               label,
               style: TextStyle(fontSize: 10, color: Colors.grey.shade400),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              '+${value == '0' ? '0' : '1'} minggu ini',
+              style: TextStyle(fontSize: 9, color: Colors.grey.shade400),
             ),
           ],
         ),
@@ -492,6 +615,96 @@ class _MetaItem extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+class _HistorySkeletonList extends StatelessWidget {
+  const _HistorySkeletonList();
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: List.generate(
+        4,
+        (index) => const Padding(
+          padding: EdgeInsets.only(bottom: 10),
+          child: _SkeletonCard(),
+        ),
+      ),
+    );
+  }
+}
+
+class _SkeletonCard extends StatelessWidget {
+  const _SkeletonCard();
+
+  @override
+  Widget build(BuildContext context) {
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0.45, end: 1),
+      duration: const Duration(milliseconds: 900),
+      curve: Curves.easeInOut,
+      builder: (context, value, child) {
+        final color = Color.lerp(
+          Colors.grey.shade200,
+          Colors.grey.shade100,
+          value,
+        )!;
+
+        return Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+            boxShadow: AppTheme.softShadow,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: _SkeletonLine(width: double.infinity, color: color),
+                  ),
+                  const SizedBox(width: 16),
+                  _SkeletonLine(width: 74, color: color),
+                ],
+              ),
+              const SizedBox(height: 16),
+              _SkeletonLine(width: 180, color: color),
+              const SizedBox(height: 10),
+              Row(
+                children: [
+                  _SkeletonLine(width: 70, color: color),
+                  const SizedBox(width: 12),
+                  _SkeletonLine(width: 54, color: color),
+                  const SizedBox(width: 12),
+                  _SkeletonLine(width: 82, color: color),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _SkeletonLine extends StatelessWidget {
+  final double width;
+  final Color color;
+  const _SkeletonLine({required this.width, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: width,
+      height: 12,
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(20),
+      ),
     );
   }
 }
