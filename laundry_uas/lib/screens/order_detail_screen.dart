@@ -53,6 +53,7 @@ class OrderDetailScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final currentIdx = _statusIndex(order.status);
+    final isCompleted = order.status.toLowerCase() == 'selesai';
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F6FA),
@@ -191,31 +192,67 @@ class OrderDetailScreen extends StatelessWidget {
             const SizedBox(height: 12),
 
             // Tombol lacak pesanan
-            SizedBox(
-              width: double.infinity,
-              height: 46,
-              child: ElevatedButton.icon(
-                onPressed: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => TrackingScreen(order: order),
+            if (!isCompleted)
+              SizedBox(
+                width: double.infinity,
+                height: 46,
+                child: ElevatedButton.icon(
+                  onPressed: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => TrackingScreen(order: order),
+                    ),
+                  ),
+                  icon: const Icon(Icons.my_location, size: 18),
+                  label: const Text(
+                    'Lacak pesanan',
+                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: _purple,
+                    foregroundColor: Colors.white,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
                 ),
-                icon: const Icon(Icons.my_location, size: 18),
-                label: const Text(
-                  'Lacak pesanan',
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+              )
+            else
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 12,
                 ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: _purple,
-                  foregroundColor: Colors.white,
-                  elevation: 0,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFE8F5E9),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: const Color(0xFF2E7D32),
+                    width: 0.5,
                   ),
+                ),
+                child: const Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.check_circle_outline,
+                      color: Color(0xFF2E7D32),
+                      size: 18,
+                    ),
+                    SizedBox(width: 8),
+                    Text(
+                      'Pesanan selesai',
+                      style: TextStyle(
+                        color: Color(0xFF2E7D32),
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
                 ),
               ),
-            ),
 
             const SizedBox(height: 12),
 

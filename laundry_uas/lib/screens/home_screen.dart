@@ -6,6 +6,7 @@ import '../models/order_data.dart';
 import 'history_screen.dart';
 import 'order_screen.dart';
 import 'profil_screen.dart';
+import 'tracking_list_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -52,8 +53,8 @@ class _HomeScreenState extends State<HomeScreen> {
           onRefresh: _loadOrders,
           onViewAll: () => setState(() => _tab = 1),
         ),
-        1 => HistoryScreen(onChanged: _loadOrders),
-        2 => const Center(child: Text('Tracking - coming soon')),
+        1 => TrackingListScreen(onChanged: _loadOrders),
+        2 => HistoryScreen(onChanged: _loadOrders),
         3 => const ProfileScreen(),
         _ => const SizedBox(),
       },
@@ -69,14 +70,14 @@ class _HomeScreenState extends State<HomeScreen> {
             label: 'Home',
           ),
           NavigationDestination(
+            icon: Icon(Icons.local_shipping_outlined),
+            selectedIcon: Icon(Icons.local_shipping, color: _purple),
+            label: 'Tracking',
+          ),
+          NavigationDestination(
             icon: Icon(Icons.history_outlined),
             selectedIcon: Icon(Icons.history, color: _purple),
             label: 'Riwayat',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.map_outlined),
-            selectedIcon: Icon(Icons.map, color: _purple),
-            label: 'Tracking',
           ),
           NavigationDestination(
             icon: Icon(Icons.person_outline),
@@ -116,9 +117,7 @@ class _HomeTab extends StatelessWidget {
   Widget build(BuildContext context) {
     final user = Supabase.instance.client.auth.currentUser;
     final userName = user?.userMetadata?['name'] as String? ?? 'Pelanggan';
-    final aktif = orderList
-        .where((o) => o.status != 'Selesai' && o.status != 'Diantar')
-        .length;
+    final aktif = orderList.where((o) => o.status != 'Selesai').length;
 
     return SafeArea(
       child: SingleChildScrollView(
