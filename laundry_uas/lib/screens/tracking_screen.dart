@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import '../models/app_user.dart';
 import '../models/order.dart';
 import '../models/order_data.dart';
@@ -14,9 +13,9 @@ class TrackingScreen extends StatefulWidget {
 }
 
 class _TrackingScreenState extends State<TrackingScreen> {
-  static const _purple = AppTheme.purple;
+  static const _purple = Color(0xFF6C63FF);
 
-  final _allStatus = const [
+  final _statusOptions = const [
     _StatusStep(
       label: 'Menunggu',
       desc: 'Pesanan diterima, menunggu diproses',
@@ -44,6 +43,15 @@ class _TrackingScreenState extends State<TrackingScreen> {
     ),
   ];
 
+  final _timelineSteps = const [
+    _TimelineStep('Pesanan dibuat', _TimelineState.done),
+    _TimelineStep('Laundry menerima pesanan', _TimelineState.done),
+    _TimelineStep('Sedang dicuci', _TimelineState.done),
+    _TimelineStep('Sedang diproses', _TimelineState.active),
+    _TimelineStep('Siap diantar', _TimelineState.waiting),
+    _TimelineStep('Selesai', _TimelineState.pending),
+  ];
+
   int _currentIdx = 0;
   bool _saving = false;
   int? _savingIdx;
@@ -55,7 +63,7 @@ class _TrackingScreenState extends State<TrackingScreen> {
   }
 
   int _statusIndex(String status) {
-    final idx = _allStatus.indexWhere(
+    final idx = _statusOptions.indexWhere(
       (s) => s.label.toLowerCase() == status.toLowerCase(),
     );
     return idx == -1 ? 0 : idx;
@@ -63,11 +71,7 @@ class _TrackingScreenState extends State<TrackingScreen> {
 
   Future<void> _updateStatus(int idx) async {
     final nextStatus = _allStatus[idx].label;
-    HapticFeedback.lightImpact();
-    setState(() {
-      _saving = true;
-      _savingIdx = idx;
-    });
+    setState(() => _saving = true);
 
     try {
       await orderRepository.updateStatus(widget.order.id, nextStatus);
@@ -120,20 +124,16 @@ class _TrackingScreenState extends State<TrackingScreen> {
   Widget build(BuildContext context) {
     final current = _allStatus[_currentIdx];
     final bool isAdmin = currentAppUser?.isAdmin ?? false;
-    final remainingStep = (_allStatus.length - 1 - _currentIdx).clamp(0, 4);
-    final estimateText = remainingStep == 0
-        ? 'Estimasi selesai: siap diambil'
-        : 'Estimasi selesai: ${remainingStep * 2} jam lagi';
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F6FA),
       appBar: AppBar(
         title: const Text(
           'Tracking pesanan',
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
         ),
         backgroundColor: Colors.white,
-        foregroundColor: const Color(0xFF1a1a2e),
+        foregroundColor: _darkText,
         elevation: 0,
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(0.5),
@@ -150,13 +150,8 @@ class _TrackingScreenState extends State<TrackingScreen> {
               width: double.infinity,
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [AppTheme.purple, AppTheme.purpleDark],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: BorderRadius.circular(AppTheme.radiusXl),
-                boxShadow: AppTheme.softShadow,
+                color: _purple,
+                borderRadius: BorderRadius.circular(20),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -208,32 +203,14 @@ class _TrackingScreenState extends State<TrackingScreen> {
                       fontSize: 13,
                     ),
                   ),
-                  const SizedBox(height: 8),
-                  Text(
-                    estimateText,
-                    style: const TextStyle(
-                      color: Color(0xE6FFFFFF),
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
                   const SizedBox(height: 16),
                   ClipRRect(
                     borderRadius: BorderRadius.circular(4),
-                    child: TweenAnimationBuilder<double>(
-                      tween: Tween(end: (_currentIdx + 1) / _allStatus.length),
-                      duration: const Duration(milliseconds: 450),
-                      curve: Curves.easeOutCubic,
-                      builder: (context, value, child) {
-                        return LinearProgressIndicator(
-                          value: value,
-                          backgroundColor: Colors.white.withValues(alpha: 0.25),
-                          valueColor: const AlwaysStoppedAnimation(
-                            Colors.white,
-                          ),
-                          minHeight: 6,
-                        );
-                      },
+                    child: LinearProgressIndicator(
+                      value: (_currentIdx + 1) / _allStatus.length,
+                      backgroundColor: Colors.white.withValues(alpha: 0.25),
+                      valueColor: const AlwaysStoppedAnimation(Colors.white),
+                      minHeight: 6,
                     ),
                   ),
                   const SizedBox(height: 6),
@@ -255,9 +232,8 @@ class _TrackingScreenState extends State<TrackingScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
               decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+                borderRadius: BorderRadius.circular(14),
                 border: Border.all(color: Colors.grey.shade100, width: 0.5),
-                boxShadow: AppTheme.softShadow,
               ),
               child: Row(
                 children: [
@@ -310,9 +286,8 @@ class _TrackingScreenState extends State<TrackingScreen> {
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+                borderRadius: BorderRadius.circular(16),
                 border: Border.all(color: Colors.grey.shade100, width: 0.5),
-                boxShadow: AppTheme.softShadow,
               ),
               child: Column(
                 children: List.generate(_allStatus.length, (i) {
@@ -325,61 +300,38 @@ class _TrackingScreenState extends State<TrackingScreen> {
                     children: [
                       Column(
                         children: [
-                          TweenAnimationBuilder<double>(
-                            tween: Tween(end: isCurrent ? 1 : 0),
-                            duration: const Duration(milliseconds: 500),
-                            curve: Curves.easeOut,
-                            builder: (context, pulse, child) {
-                              return AnimatedContainer(
-                                duration: const Duration(milliseconds: 350),
-                                width: 28,
-                                height: 28,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: done
-                                      ? (isCurrent
-                                            ? _purple
-                                            : const Color(0xFFEEEDFE))
-                                      : Colors.grey.shade100,
-                                  border: Border.all(
-                                    color: done
+                          Container(
+                            width: 28,
+                            height: 28,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: done
+                                  ? (isCurrent
                                         ? _purple
-                                        : Colors.grey.shade300,
-                                    width: isCurrent ? 2 : 0.5,
-                                  ),
-                                  boxShadow: isCurrent
-                                      ? [
-                                          BoxShadow(
-                                            color: _purple.withValues(
-                                              alpha: 0.18 + (pulse * 0.12),
-                                            ),
-                                            blurRadius: 12 + (pulse * 6),
-                                            spreadRadius: 1,
-                                          ),
-                                        ]
-                                      : null,
-                                ),
-                                child: Center(
-                                  child: done
-                                      ? Icon(
-                                          isCurrent
-                                              ? _allStatus[i].icon
-                                              : Icons.check,
-                                          size: 14,
-                                          color: isCurrent
-                                              ? Colors.white
-                                              : _purple,
-                                        )
-                                      : Text(
-                                          '${i + 1}',
-                                          style: TextStyle(
-                                            fontSize: 11,
-                                            color: Colors.grey.shade400,
-                                          ),
-                                        ),
-                                ),
-                              );
-                            },
+                                        : const Color(0xFFEEEDFE))
+                                  : Colors.grey.shade100,
+                              border: Border.all(
+                                color: done ? _purple : Colors.grey.shade300,
+                                width: isCurrent ? 2 : 0.5,
+                              ),
+                            ),
+                            child: Center(
+                              child: done
+                                  ? Icon(
+                                      isCurrent
+                                          ? _allStatus[i].icon
+                                          : Icons.check,
+                                      size: 14,
+                                      color: isCurrent ? Colors.white : _purple,
+                                    )
+                                  : Text(
+                                      '${i + 1}',
+                                      style: TextStyle(
+                                        fontSize: 11,
+                                        color: Colors.grey.shade400,
+                                      ),
+                                    ),
+                            ),
                           ),
                           if (!isLast)
                             Container(
@@ -426,20 +378,6 @@ class _TrackingScreenState extends State<TrackingScreen> {
                                       : Colors.grey.shade300,
                                 ),
                               ),
-                              const SizedBox(height: 4),
-                              Text(
-                                i <= _currentIdx
-                                    ? (i == 0
-                                          ? widget.order.tanggal
-                                          : 'Diperbarui oleh admin')
-                                    : 'Menunggu pembaruan',
-                                style: TextStyle(
-                                  fontSize: 10,
-                                  color: done
-                                      ? Colors.grey.shade400
-                                      : Colors.grey.shade300,
-                                ),
-                              ),
                             ],
                           ),
                         ),
@@ -477,7 +415,7 @@ class _TrackingScreenState extends State<TrackingScreen> {
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
                   color: const Color(0xFFEEEDFE),
-                  borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+                  borderRadius: BorderRadius.circular(14),
                   border: Border.all(
                     color: const Color(0xFF6C63FF),
                     width: 0.5,
@@ -513,9 +451,8 @@ class _TrackingScreenState extends State<TrackingScreen> {
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
                   color: Colors.white,
-                  borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+                  borderRadius: BorderRadius.circular(16),
                   border: Border.all(color: Colors.grey.shade100, width: 0.5),
-                  boxShadow: AppTheme.softShadow,
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -570,64 +507,43 @@ class _TrackingScreenState extends State<TrackingScreen> {
                         final isActive = i == _currentIdx;
                         return GestureDetector(
                           onTap: _saving ? null : () => _updateStatus(i),
-                          child: AnimatedOpacity(
-                            duration: const Duration(milliseconds: 180),
-                            opacity: _saving && _savingIdx != i ? 0.45 : 1,
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 8,
-                              ),
-                              decoration: BoxDecoration(
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 8,
+                            ),
+                            decoration: BoxDecoration(
+                              color: isActive
+                                  ? _purple
+                                  : const Color(0xFFF5F6FA),
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(
                                 color: isActive
                                     ? _purple
-                                    : const Color(0xFFF5F6FA),
-                                borderRadius: BorderRadius.circular(
-                                  AppTheme.radiusSm,
-                                ),
-                                border: Border.all(
-                                  color: isActive
-                                      ? _purple
-                                      : Colors.grey.shade200,
-                                  width: 0.5,
-                                ),
+                                    : Colors.grey.shade200,
+                                width: 0.5,
                               ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  if (_savingIdx == i)
-                                    SizedBox(
-                                      width: 14,
-                                      height: 14,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                        valueColor:
-                                            AlwaysStoppedAnimation<Color>(
-                                              isActive ? Colors.white : _purple,
-                                            ),
-                                      ),
-                                    )
-                                  else
-                                    Icon(
-                                      _allStatus[i].icon,
-                                      size: 14,
-                                      color: isActive
-                                          ? Colors.white
-                                          : Colors.grey,
-                                    ),
-                                  const SizedBox(width: 6),
-                                  Text(
-                                    _allStatus[i].label,
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w500,
-                                      color: isActive
-                                          ? Colors.white
-                                          : Colors.grey,
-                                    ),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  _allStatus[i].icon,
+                                  size: 14,
+                                  color: isActive ? Colors.white : Colors.grey,
+                                ),
+                                const SizedBox(width: 6),
+                                Text(
+                                  _allStatus[i].label,
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w500,
+                                    color: isActive
+                                        ? Colors.white
+                                        : Colors.grey,
                                   ),
-                                ],
-                              ),
+                                ),
+                              ],
                             ),
                           ),
                         );
@@ -655,29 +571,10 @@ class _StatusStep {
   });
 }
 
-class _MiniInfo extends StatelessWidget {
-  final String label, value;
-  const _MiniInfo({required this.label, required this.value});
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Text(
-          label,
-          style: TextStyle(fontSize: 11, color: Colors.grey.shade400),
-        ),
-        const SizedBox(height: 3),
-        Text(
-          value,
-          style: const TextStyle(
-            fontSize: 13,
-            fontWeight: FontWeight.w500,
-            color: Color(0xFF1a1a2e),
-          ),
-          textAlign: TextAlign.center,
-        ),
-      ],
-    );
-  }
+class _TimelineStep {
+  final String label;
+  final _TimelineState state;
+  const _TimelineStep(this.label, this.state);
 }
+
+enum _TimelineState { done, active, waiting, pending }
