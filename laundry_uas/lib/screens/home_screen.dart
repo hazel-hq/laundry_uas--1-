@@ -103,9 +103,6 @@ class _HomeScreenState extends State<HomeScreen> {
         3 => const ProfileScreen(),
         _ => const SizedBox(),
       },
-
-
-      ),
     );
   }
 }

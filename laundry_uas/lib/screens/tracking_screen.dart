@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import '../models/app_user.dart';
 import '../models/order.dart';
 import '../models/order_data.dart';
-import '../theme/app_theme.dart';
 
 class TrackingScreen extends StatefulWidget {
   final Order order;
@@ -14,6 +13,7 @@ class TrackingScreen extends StatefulWidget {
 
 class _TrackingScreenState extends State<TrackingScreen> {
   static const _purple = Color(0xFF6C63FF);
+  static const _darkText = Color(0xFF1A1A2E);
 
   final _statusOptions = const [
     _StatusStep(
@@ -43,18 +43,8 @@ class _TrackingScreenState extends State<TrackingScreen> {
     ),
   ];
 
-  final _timelineSteps = const [
-    _TimelineStep('Pesanan dibuat', _TimelineState.done),
-    _TimelineStep('Laundry menerima pesanan', _TimelineState.done),
-    _TimelineStep('Sedang dicuci', _TimelineState.done),
-    _TimelineStep('Sedang diproses', _TimelineState.active),
-    _TimelineStep('Siap diantar', _TimelineState.waiting),
-    _TimelineStep('Selesai', _TimelineState.pending),
-  ];
-
   int _currentIdx = 0;
   bool _saving = false;
-  int? _savingIdx;
 
   @override
   void initState() {
@@ -70,7 +60,7 @@ class _TrackingScreenState extends State<TrackingScreen> {
   }
 
   Future<void> _updateStatus(int idx) async {
-    final nextStatus = _allStatus[idx].label;
+    final nextStatus = _statusOptions[idx].label;
     setState(() => _saving = true);
 
     try {
@@ -85,7 +75,6 @@ class _TrackingScreenState extends State<TrackingScreen> {
         _currentIdx = idx;
         widget.order.status = nextStatus;
         _saving = false;
-        _savingIdx = null;
       });
 
       ScaffoldMessenger.of(context).showSnackBar(
@@ -109,7 +98,6 @@ class _TrackingScreenState extends State<TrackingScreen> {
       if (!mounted) return;
       setState(() {
         _saving = false;
-        _savingIdx = null;
       });
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -122,7 +110,7 @@ class _TrackingScreenState extends State<TrackingScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final current = _allStatus[_currentIdx];
+    final current = _statusOptions[_currentIdx];
     final bool isAdmin = currentAppUser?.isAdmin ?? false;
 
     return Scaffold(
@@ -207,7 +195,7 @@ class _TrackingScreenState extends State<TrackingScreen> {
                   ClipRRect(
                     borderRadius: BorderRadius.circular(4),
                     child: LinearProgressIndicator(
-                      value: (_currentIdx + 1) / _allStatus.length,
+                      value: (_currentIdx + 1) / _statusOptions.length,
                       backgroundColor: Colors.white.withValues(alpha: 0.25),
                       valueColor: const AlwaysStoppedAnimation(Colors.white),
                       minHeight: 6,
@@ -215,7 +203,7 @@ class _TrackingScreenState extends State<TrackingScreen> {
                   ),
                   const SizedBox(height: 6),
                   Text(
-                    'Langkah ${_currentIdx + 1} dari ${_allStatus.length}',
+                    'Langkah ${_currentIdx + 1} dari ${_statusOptions.length}',
                     style: const TextStyle(
                       color: Color(0xCCFFFFFF),
                       fontSize: 11,
@@ -290,10 +278,10 @@ class _TrackingScreenState extends State<TrackingScreen> {
                 border: Border.all(color: Colors.grey.shade100, width: 0.5),
               ),
               child: Column(
-                children: List.generate(_allStatus.length, (i) {
+                children: List.generate(_statusOptions.length, (i) {
                   final done = i <= _currentIdx;
                   final isCurrent = i == _currentIdx;
-                  final isLast = i == _allStatus.length - 1;
+                  final isLast = i == _statusOptions.length - 1;
 
                   return Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -319,7 +307,7 @@ class _TrackingScreenState extends State<TrackingScreen> {
                               child: done
                                   ? Icon(
                                       isCurrent
-                                          ? _allStatus[i].icon
+                                          ? _statusOptions[i].icon
                                           : Icons.check,
                                       size: 14,
                                       color: isCurrent ? Colors.white : _purple,
@@ -357,7 +345,7 @@ class _TrackingScreenState extends State<TrackingScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                _allStatus[i].label,
+                                _statusOptions[i].label,
                                 style: TextStyle(
                                   fontSize: 14,
                                   fontWeight: isCurrent
@@ -370,7 +358,7 @@ class _TrackingScreenState extends State<TrackingScreen> {
                               ),
                               const SizedBox(height: 2),
                               Text(
-                                _allStatus[i].desc,
+                                _statusOptions[i].desc,
                                 style: TextStyle(
                                   fontSize: 11,
                                   color: done
@@ -503,7 +491,7 @@ class _TrackingScreenState extends State<TrackingScreen> {
                     Wrap(
                       spacing: 8,
                       runSpacing: 8,
-                      children: List.generate(_allStatus.length, (i) {
+                      children: List.generate(_statusOptions.length, (i) {
                         final isActive = i == _currentIdx;
                         return GestureDetector(
                           onTap: _saving ? null : () => _updateStatus(i),
@@ -528,13 +516,13 @@ class _TrackingScreenState extends State<TrackingScreen> {
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 Icon(
-                                  _allStatus[i].icon,
+                                  _statusOptions[i].icon,
                                   size: 14,
                                   color: isActive ? Colors.white : Colors.grey,
                                 ),
                                 const SizedBox(width: 6),
                                 Text(
-                                  _allStatus[i].label,
+                                  _statusOptions[i].label,
                                   style: TextStyle(
                                     fontSize: 12,
                                     fontWeight: FontWeight.w500,
@@ -571,10 +559,34 @@ class _StatusStep {
   });
 }
 
-class _TimelineStep {
+class _MiniInfo extends StatelessWidget {
   final String label;
-  final _TimelineState state;
-  const _TimelineStep(this.label, this.state);
-}
+  final String value;
 
-enum _TimelineState { done, active, waiting, pending }
+  const _MiniInfo({required this.label, required this.value});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Text(
+          label,
+          style: TextStyle(fontSize: 11, color: Colors.grey.shade500),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          value,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          textAlign: TextAlign.center,
+          style: const TextStyle(
+            fontSize: 13,
+            color: Color(0xFF1A1A2E),
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ],
+    );
+  }
+}
