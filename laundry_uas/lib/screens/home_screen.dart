@@ -6,7 +6,6 @@ import '../models/order_data.dart';
 import 'history_screen.dart';
 import 'order_screen.dart';
 import 'profil_screen.dart';
-import 'tracking_list_screen.dart';
 
 // ============================================================
 // DESIGN TOKENS
@@ -98,13 +97,59 @@ class _HomeScreenState extends State<HomeScreen> {
           onRefresh: _loadOrders,
           onViewAll: () => setState(() => _tab = 1),
         ),
-        1 => TrackingListScreen(onChanged: _loadOrders),
-        2 => HistoryScreen(onChanged: _loadOrders),
+        1 => HistoryScreen(onChanged: _loadOrders),
+        2 => const Center(child: Text('Tracking - coming soon')),
         3 => const ProfileScreen(),
         _ => const SizedBox(),
       },
-
-
+      bottomNavigationBar: DecoratedBox(
+        decoration: BoxDecoration(
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.06),
+              blurRadius: 12,
+              offset: const Offset(0, -2),
+            ),
+          ],
+        ),
+        child: NavigationBar(
+          selectedIndex: _tab,
+          onDestinationSelected: (i) => setState(() => _tab = i),
+          backgroundColor: Colors.white,
+          indicatorColor: _T.purpleContainer,
+          elevation: 0,
+          height: 66,
+          labelTextStyle: WidgetStateProperty.resolveWith((states) {
+            final selected = states.contains(WidgetState.selected);
+            return TextStyle(
+              fontSize: 11,
+              fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
+              color: selected ? _T.purple : Colors.grey.shade500,
+            );
+          }),
+          destinations: const [
+            NavigationDestination(
+              icon: Icon(Icons.home_outlined),
+              selectedIcon: Icon(Icons.home, color: _T.purple),
+              label: 'Home',
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.history_outlined),
+              selectedIcon: Icon(Icons.history, color: _T.purple),
+              label: 'Riwayat',
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.map_outlined),
+              selectedIcon: Icon(Icons.map, color: _T.purple),
+              label: 'Tracking',
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.person_outline),
+              selectedIcon: Icon(Icons.person, color: _T.purple),
+              label: 'Profil',
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -135,7 +180,9 @@ class _HomeTab extends StatelessWidget {
   Widget build(BuildContext context) {
     final user = Supabase.instance.client.auth.currentUser;
     final userName = user?.userMetadata?['name'] as String? ?? 'Pelanggan';
-    final aktif = orderList.where((o) => o.status != 'Selesai').length;
+    final aktif = orderList
+        .where((o) => o.status != 'Selesai' && o.status != 'Diantar')
+        .length;
 
     return SafeArea(
       child: RefreshIndicator(
