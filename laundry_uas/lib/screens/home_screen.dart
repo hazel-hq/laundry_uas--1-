@@ -6,6 +6,7 @@ import '../models/order_data.dart';
 import 'history_screen.dart';
 import 'order_screen.dart';
 import 'profil_screen.dart';
+import 'tracking_list_screen.dart';
 
 // ============================================================
 // DESIGN TOKENS
@@ -97,9 +98,13 @@ class _HomeScreenState extends State<HomeScreen> {
           onRefresh: _loadOrders,
           onViewAll: () => setState(() => _tab = 1),
         ),
+
         1 => HistoryScreen(onChanged: _loadOrders),
-        2 => const Center(child: Text('Tracking - coming soon')),
+
+        2 => TrackingListScreen(onChanged: _loadOrders),
+
         3 => const ProfileScreen(),
+
         _ => const SizedBox(),
       },
       bottomNavigationBar: DecoratedBox(
