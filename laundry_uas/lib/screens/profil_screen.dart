@@ -199,13 +199,13 @@ class ProfileScreen extends StatelessWidget {
                         _InfoTile(
                           icon: Icons.phone_outlined,
                           label: 'WhatsApp',
-                          value: '0812-3456-7890',
+                          value: '0857 2515 8604',
                         ),
                         SizedBox(height: _PT.s16),
                         _InfoTile(
                           icon: Icons.access_time_outlined,
                           label: 'Jam Operasional',
-                          value: 'Senin - Sabtu, 08.00 - 20.00',
+                          value: 'Senin - Sabtu, 09.00 - 18.00',
                         ),
                       ],
                     ),
@@ -356,7 +356,7 @@ class ProfileScreen extends StatelessWidget {
               const _InfoTile(
                 icon: Icons.phone_outlined,
                 label: 'WhatsApp',
-                value: '0812-3456-7890',
+                value: '0857 2515 8604',
               ),
               const SizedBox(height: 14),
               const _InfoTile(
