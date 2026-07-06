@@ -98,11 +98,18 @@ class _HomeScreenState extends State<HomeScreen> {
           onRefresh: _loadOrders,
           onViewAll: () => setState(() => _tab = 1),
         ),
-        1 => TrackingListScreen(onChanged: _loadOrders),
-        2 => HistoryScreen(onChanged: _loadOrders),
+
+        1 => HistoryScreen(onChanged: _loadOrders),
+
+        2 => TrackingListScreen(onChanged: _loadOrders),
+
         3 => const ProfileScreen(),
+
         _ => const SizedBox(),
       },
+
+
+      ),
     );
   }
 }
@@ -132,7 +139,9 @@ class _HomeTab extends StatelessWidget {
   Widget build(BuildContext context) {
     final user = Supabase.instance.client.auth.currentUser;
     final userName = user?.userMetadata?['name'] as String? ?? 'Pelanggan';
-    final aktif = orderList.where((o) => o.status != 'Selesai').length;
+    final aktif = orderList
+        .where((o) => o.status != 'Selesai' && o.status != 'Diantar')
+        .length;
 
     return SafeArea(
       child: RefreshIndicator(
