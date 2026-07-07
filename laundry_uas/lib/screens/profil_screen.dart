@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
-
+import '../models/app_user.dart';
 import 'login_screen.dart';
 import 'faq_screen.dart';
 
@@ -41,11 +40,10 @@ class ProfileScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final user = Supabase.instance.client.auth.currentUser;
+    final user = currentAppUser;
     final isGuest = user == null;
-    final userName =
-        (user?.userMetadata?['name'] as String?) ??
-        (isGuest ? 'Pengguna' : (user.email ?? 'Pengguna'));
+
+    final userName = isGuest ? 'Pengguna' : user.fullName;
 
     return Scaffold(
       backgroundColor: _PT.bg,
@@ -429,10 +427,15 @@ class ProfileScreen extends StatelessWidget {
                   Expanded(
                     child: ElevatedButton(
                       onPressed: () {
+                        currentAppUser = null;
+
                         Navigator.pop(context);
+
                         Navigator.pushAndRemoveUntil(
                           context,
-                          MaterialPageRoute(builder: (_) => LoginScreen()),
+                          MaterialPageRoute(
+                            builder: (_) => const LoginScreen(),
+                          ),
                           (route) => false,
                         );
                       },
