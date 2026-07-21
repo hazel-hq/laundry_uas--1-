@@ -51,7 +51,7 @@ const List<_FaqItem> _faqData = [
     steps: [
       'Buka halaman Login.',
       'Ketuk "Daftar" di bagian bawah halaman.',
-      'Isi nama, email, dan kata sandi.',
+      'Isi email, username, dan kata sandi.',
       'Ketuk "Buat Akun" untuk menyelesaikan pendaftaran.',
     ],
   ),
@@ -59,7 +59,7 @@ const List<_FaqItem> _faqData = [
     question: 'Bagaimana cara login?',
     steps: [
       'Buka halaman Login.',
-      'Masukkan email dan kata sandi yang terdaftar.',
+      'Masukkan email, username dan kata sandi yang terdaftar.',
       'Ketuk tombol "Masuk".',
     ],
   ),
@@ -96,7 +96,7 @@ const List<_FaqItem> _faqData = [
     ],
   ),
   _FaqItem(
-    question: 'Bagaimana cara menghubungi laundry?',
+    question: 'Bagaimana cara menghubungi admin laundry?',
     steps: [
       'Buka tab Profil.',
       'Ketuk menu "Hubungi Kami".',

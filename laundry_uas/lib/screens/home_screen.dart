@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
-
+import '../models/app_user.dart';
+import 'login_screen.dart';
 import '../models/order.dart';
 import '../models/order_data.dart';
 import 'history_screen.dart';
 import 'order_screen.dart';
 import 'profil_screen.dart';
 import 'tracking_list_screen.dart';
+import 'login_required_dialog.dart';
 
 // ============================================================
 // DESIGN TOKENS
@@ -107,6 +108,55 @@ class _HomeScreenState extends State<HomeScreen> {
 
         _ => const SizedBox(),
       },
+      bottomNavigationBar: DecoratedBox(
+        decoration: BoxDecoration(
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.06),
+              blurRadius: 12,
+              offset: const Offset(0, -2),
+            ),
+          ],
+        ),
+        child: NavigationBar(
+          selectedIndex: _tab,
+          onDestinationSelected: (i) => setState(() => _tab = i),
+          backgroundColor: Colors.white,
+          indicatorColor: _T.purpleContainer,
+          elevation: 0,
+          height: 66,
+          labelTextStyle: WidgetStateProperty.resolveWith((states) {
+            final selected = states.contains(WidgetState.selected);
+            return TextStyle(
+              fontSize: 11,
+              fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
+              color: selected ? _T.purple : Colors.grey.shade500,
+            );
+          }),
+          destinations: const [
+            NavigationDestination(
+              icon: Icon(Icons.home_outlined),
+              selectedIcon: Icon(Icons.home, color: _T.purple),
+              label: 'Home',
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.history_outlined),
+              selectedIcon: Icon(Icons.history, color: _T.purple),
+              label: 'Riwayat',
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.map_outlined),
+              selectedIcon: Icon(Icons.map, color: _T.purple),
+              label: 'Tracking',
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.person_outline),
+              selectedIcon: Icon(Icons.person, color: _T.purple),
+              label: 'Profil',
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -134,12 +184,16 @@ class _HomeTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final user = Supabase.instance.client.auth.currentUser;
-    final userName = user?.userMetadata?['name'] as String? ?? 'Pelanggan';
-    final aktif = orderList
-        .where((o) => o.status != 'Selesai' && o.status != 'Diantar')
-        .length;
+    final user = currentAppUser;
+    final isGuest = user == null;
 
+    final userName = isGuest ? 'Guest' : user.username;
+
+    final aktif = isGuest
+        ? 0
+        : orderList
+              .where((o) => o.status != 'Selesai' && o.status != 'Diantar')
+              .length;
     return SafeArea(
       child: RefreshIndicator(
         color: _T.purple,
@@ -154,7 +208,7 @@ class _HomeTab extends StatelessWidget {
                 greeting: _greeting(),
                 userName: userName,
                 loading: loading,
-                totalOrders: orderList.length,
+                totalOrders: isGuest ? 0 : orderList.length,
                 activeOrders: aktif,
               ),
               if (error != null) ...[
@@ -203,7 +257,7 @@ class _HomeTab extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: _T.s24),
-              if (orderList.isNotEmpty) ...[
+              if (!isGuest && orderList.isNotEmpty) ...[
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -496,10 +550,16 @@ class _OrderCta extends StatelessWidget {
       child: InkWell(
         borderRadius: BorderRadius.circular(_T.rLg),
         onTap: () async {
+          if (currentAppUser == null) {
+            await showLoginRequiredDialog(context);
+            return;
+          }
+
           await Navigator.push(
             context,
             MaterialPageRoute(builder: (_) => const OrderScreen()),
           );
+
           await onRefresh();
         },
         child: Ink(
