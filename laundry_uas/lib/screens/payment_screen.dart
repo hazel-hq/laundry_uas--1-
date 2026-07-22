@@ -169,8 +169,18 @@ class _PaymentScreenState extends State<PaymentScreen> {
                   _BillRow(
                     label: 'Harga satuan',
                     value:
-                        'Rp ${(widget.order.total / widget.order.berat).toStringAsFixed(0)}/kg',
+                        'Rp ${widget.order.pricePerKg.toStringAsFixed(0)}/kg',
                   ),
+                  _BillRow(
+                    label: 'Subtotal',
+                    value: 'Rp ${widget.order.subtotal.toStringAsFixed(0)}',
+                  ),
+                  if (widget.order.hasDiscount)
+                    _BillRow(
+                      label: 'Diskon bulanan',
+                      value: '-Rp ${widget.order.discount.toStringAsFixed(0)}',
+                      valueColor: const Color(0xFF2E7D32),
+                    ),
                   const Divider(height: 20, thickness: 0.5),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -640,7 +650,9 @@ class _MetodeCard extends StatelessWidget {
 
 class _BillRow extends StatelessWidget {
   final String label, value;
-  const _BillRow({required this.label, required this.value});
+  final Color? valueColor;
+
+  const _BillRow({required this.label, required this.value, this.valueColor});
 
   @override
   Widget build(BuildContext context) {
@@ -655,10 +667,10 @@ class _BillRow extends StatelessWidget {
           ),
           Text(
             value,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w500,
-              color: Color(0xFF1a1a2e),
+              color: valueColor ?? const Color(0xFF1a1a2e),
             ),
           ),
         ],

@@ -12,6 +12,7 @@ Tujuan utama:
 
 - Pengguna dapat membuat pesanan laundry tanpa datang langsung ke outlet.
 - Pengguna dapat melihat total biaya berdasarkan berat dan jenis layanan.
+- Pengguna pelanggan tetap dapat memperoleh diskon bulanan otomatis setelah mencapai jumlah pemesanan tertentu.
 - Pengguna dapat memantau status laundry secara bertahap.
 - Pengguna dapat memilih dan mengonfirmasi metode pembayaran.
 - Admin dapat memantau seluruh pesanan dan memperbarui status pesanan melalui Dashboard Admin.
@@ -47,10 +48,17 @@ Tujuan utama:
 ### 4.3 Buat Pesanan
 
 - Pengguna mengisi nama pelanggan, berat laundry, dan jenis layanan.
-- Sistem menghitung total otomatis dengan rumus:
+- Sistem menghitung subtotal otomatis dengan rumus:
 
 ```text
-Total = berat x harga layanan
+Subtotal = berat x harga layanan
+```
+
+- Sistem memberikan diskon bulanan otomatis sebesar 10% jika pelanggan sudah membuat minimal 5 pesanan dalam bulan berjalan.
+- Total pembayaran dihitung dengan rumus:
+
+```text
+Total = subtotal - diskon
 ```
 
 - Validasi:
@@ -93,7 +101,7 @@ Total = berat x harga layanan
 
 ### 4.7 Pembayaran
 
-- Menampilkan ringkasan tagihan.
+- Menampilkan ringkasan tagihan, meliputi subtotal, diskon bulanan jika ada, dan total tagihan akhir.
 - Metode pembayaran:
   - QRIS
   - COD / Tunai
@@ -178,6 +186,7 @@ Alur aplikasi dibagi berdasarkan peran pengguna, yaitu pelanggan dan admin. Pemi
    - Berat laundry
    - Jenis layanan
 6. Sistem menghitung estimasi total secara otomatis berdasarkan berat dan harga layanan.
+   - Jika pesanan tersebut menjadi pesanan ke-5 atau lebih dalam bulan berjalan, sistem otomatis menerapkan diskon bulanan 10%.
 7. Pelanggan menekan tombol **Buat pesanan**.
 8. Sistem melakukan validasi:
    - Nama pelanggan wajib diisi.
@@ -187,6 +196,7 @@ Alur aplikasi dibagi berdasarkan peran pengguna, yaitu pelanggan dan admin. Pemi
 9. Jika validasi berhasil, sistem menyimpan pesanan ke database dengan status awal:
    - Status pesanan: `Menunggu`
    - Status pembayaran: `Belum dibayar`
+   - Diskon: `10%` dari subtotal jika memenuhi syarat langganan bulanan, selain itu `0`
 10. Sistem langsung mengarahkan pelanggan ke halaman Pembayaran untuk menyelesaikan pembayaran pesanan tersebut.
 
 ### 5.4 Alur Pelanggan Melihat Riwayat dan Detail Pesanan
@@ -206,6 +216,8 @@ Alur aplikasi dibagi berdasarkan peran pengguna, yaitu pelanggan dan admin. Pemi
    - Layanan
    - Berat
    - Harga satuan
+   - Subtotal
+   - Diskon bulanan jika ada
    - Total pembayaran
    - Status pesanan
    - Status pembayaran
@@ -235,6 +247,8 @@ Alur aplikasi dibagi berdasarkan peran pengguna, yaitu pelanggan dan admin. Pemi
    - Layanan
    - Berat
    - Harga satuan
+   - Subtotal
+   - Diskon bulanan jika memenuhi syarat
    - Total tagihan
 3. Pelanggan memilih metode pembayaran:
    - QRIS
@@ -297,6 +311,8 @@ Field:
 - `nama`
 - `berat`
 - `layanan`
+- `subtotal`
+- `discount`
 - `total`
 - `status`
 - `statusBayar`

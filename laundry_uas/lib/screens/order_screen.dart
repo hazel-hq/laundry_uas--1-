@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/order.dart';
 import '../models/order_data.dart';
+import '../services/order_repository.dart';
 import 'payment_screen.dart';
 
 class OrderScreen extends StatefulWidget {
@@ -14,6 +15,8 @@ class _OrderScreenState extends State<OrderScreen> {
   final _berat = TextEditingController();
   String _layanan = 'Cuci';
   static const _purple = Color(0xFF6C63FF);
+  static const _discountRate = OrderRepository.monthlyDiscountRate;
+  static const _discountThreshold = OrderRepository.monthlyDiscountThreshold;
 
   final _layananList = [
     {
@@ -41,12 +44,49 @@ class _OrderScreenState extends State<OrderScreen> {
     return (item['harga'] as int).toDouble();
   }
 
-  double get _total {
+  double get _subtotal {
     final berat = double.tryParse(_berat.text) ?? 0;
     return berat * _hargaSatuan;
   }
 
+  double get _discount => _isDiscountEligible ? _subtotal * _discountRate : 0;
+
+  double get _total => _subtotal - _discount;
+
+  bool get _isDiscountEligible => _monthlyOrderCount + 1 >= _discountThreshold;
+
+  bool get _showLegacyPricePreview => false;
+
   bool _saving = false;
+  bool _checkingDiscount = true;
+  int _monthlyOrderCount = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadMonthlyDiscountProgress();
+  }
+
+  Future<void> _loadMonthlyDiscountProgress() async {
+    try {
+      final count = await orderRepository.countCurrentMonthOrders();
+      if (!mounted) return;
+      setState(() {
+        _monthlyOrderCount = count;
+        _checkingDiscount = false;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _checkingDiscount = false);
+    }
+  }
+
+  @override
+  void dispose() {
+    _nama.dispose();
+    _berat.dispose();
+    super.dispose();
+  }
 
   Future<void> _simpan() async {
     if (_nama.text.isEmpty || _berat.text.isEmpty) {
@@ -72,6 +112,8 @@ class _OrderScreenState extends State<OrderScreen> {
           nama: _nama.text,
           berat: berat,
           layanan: _layanan,
+          subtotal: _subtotal,
+          discount: _discount,
           total: _total,
         ),
       );
@@ -152,6 +194,76 @@ class _OrderScreenState extends State<OrderScreen> {
                     'Berat (kg)',
                     Icons.scale_outlined,
                     isNumber: true,
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 12),
+
+            // Info diskon langganan bulanan
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: _isDiscountEligible
+                    ? const Color(0xFFE8F5E9)
+                    : Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: _isDiscountEligible
+                      ? const Color(0xFF2E7D32)
+                      : Colors.grey.shade100,
+                  width: 0.5,
+                ),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: _isDiscountEligible
+                          ? const Color(0xFFD5F0D8)
+                          : const Color(0xFFEEEDFE),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Icon(
+                      Icons.local_offer_outlined,
+                      color: _isDiscountEligible
+                          ? const Color(0xFF2E7D32)
+                          : _purple,
+                      size: 22,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          _isDiscountEligible
+                              ? 'Diskon bulanan aktif'
+                              : 'Diskon bulanan',
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFF1a1a2e),
+                          ),
+                        ),
+                        const SizedBox(height: 3),
+                        Text(
+                          _checkingDiscount
+                              ? 'Memeriksa jumlah pesanan bulan ini...'
+                              : _isDiscountEligible
+                              ? 'Pesanan ini mendapat diskon 10%.'
+                              : 'Pesanan ke-${_monthlyOrderCount + 1}; diskon aktif mulai pesanan ke-5 bulan ini.',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey.shade600,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),
@@ -263,6 +375,42 @@ class _OrderScreenState extends State<OrderScreen> {
                     width: 0.5,
                   ),
                 ),
+                child: Column(
+                  children: [
+                    _PriceRow(
+                      label:
+                          '$berat kg x Rp ${_hargaSatuan.toStringAsFixed(0)}',
+                      value: 'Rp ${_subtotal.toStringAsFixed(0)}',
+                    ),
+                    if (_discount > 0) ...[
+                      const SizedBox(height: 8),
+                      _PriceRow(
+                        label: 'Diskon bulanan 10%',
+                        value: '-Rp ${_discount.toStringAsFixed(0)}',
+                        valueColor: const Color(0xFF2E7D32),
+                      ),
+                    ],
+                    const Divider(height: 18, thickness: 0.5),
+                    _PriceRow(
+                      label: 'Total bayar',
+                      value: 'Rp ${_total.toStringAsFixed(0)}',
+                      isTotal: true,
+                    ),
+                  ],
+                ),
+              ),
+
+            if (_showLegacyPricePreview && berat > 0)
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFEEEDFE),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: const Color(0xFF6C63FF),
+                    width: 0.5,
+                  ),
+                ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -349,6 +497,50 @@ class _OrderScreenState extends State<OrderScreen> {
           vertical: 14,
         ),
       ),
+    );
+  }
+}
+
+class _PriceRow extends StatelessWidget {
+  final String label;
+  final String value;
+  final Color? valueColor;
+  final bool isTotal;
+
+  const _PriceRow({
+    required this.label,
+    required this.value,
+    this.valueColor,
+    this.isTotal = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Expanded(
+          child: Text(
+            label,
+            style: TextStyle(
+              fontSize: isTotal ? 14 : 13,
+              fontWeight: isTotal ? FontWeight.w600 : FontWeight.w400,
+              color: const Color(0xFF534AB7),
+            ),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: isTotal ? 16 : 13,
+            fontWeight: isTotal ? FontWeight.w700 : FontWeight.w600,
+            color:
+                valueColor ??
+                (isTotal ? const Color(0xFF3C3489) : const Color(0xFF534AB7)),
+          ),
+        ),
+      ],
     );
   }
 }
