@@ -24,10 +24,10 @@ dev_dependencies:
 flutter_launcher_icons:
   android: "launcher_icon"
   ios: false
-  image_path: "assets/app_icon.png"
+  image_path: "assets/profil_laundry.png"
 
 flutter:
   uses-material-design: true
 
   assets:
-    - assets/app_icon.png
+    - assets/

@@ -107,16 +107,16 @@ class _LoginScreenState extends State<LoginScreen> {
               const SizedBox(height: 60),
               // Logo
               Container(
-                width: 80,
-                height: 80,
+                width: 90,
+                height: 90,
                 decoration: BoxDecoration(
                   color: _purple,
                   borderRadius: BorderRadius.circular(24),
                 ),
-                child: const Icon(
-                  Icons.local_laundry_service,
-                  size: 44,
-                  color: Colors.white,
+                padding: const EdgeInsets.all(12),
+                child: Image.asset(
+                  'assets/profil_laundry.png',
+                  fit: BoxFit.contain,
                 ),
               ),
               const SizedBox(height: 20),

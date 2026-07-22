@@ -309,7 +309,7 @@ class _QrisSection extends StatelessWidget {
   final double total;
   const _QrisSection({required this.total});
 
-  static const _noRek = '1234-5678-9012';
+  static const _noRek = '6031777718123';
 
   @override
   Widget build(BuildContext context) {
@@ -328,25 +328,17 @@ class _QrisSection extends StatelessWidget {
           ),
           const SizedBox(height: 14),
 
-          // QR placeholder
           Container(
-            width: 180,
-            height: 180,
+            width: 220,
+            padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: const Color(0xFFF5F6FA),
+              color: Colors.white,
               borderRadius: BorderRadius.circular(12),
               border: Border.all(color: Colors.grey.shade200),
             ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.qr_code_2, size: 100, color: Colors.grey.shade300),
-                const SizedBox(height: 4),
-                Text(
-                  'QR laundry kamu',
-                  style: TextStyle(fontSize: 10, color: Colors.grey.shade400),
-                ),
-              ],
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: Image.asset('assets/qr_laundry.jpeg', fit: BoxFit.contain),
             ),
           ),
 
@@ -396,7 +388,7 @@ class _QrisSection extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'No. rekening / QRIS ID',
+                      'QRIS Merchant',
                       style: TextStyle(
                         fontSize: 11,
                         color: Colors.grey.shade400,
