@@ -1,4 +1,4 @@
- import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 
 import '../models/app_user.dart';
 import '../models/order.dart';
@@ -286,6 +286,10 @@ class _AdminOrderCard extends StatelessWidget {
             runSpacing: 6,
             children: [
               _Meta(label: 'User', value: order.customerUsername ?? 'Guest'),
+              _Meta(
+                label: 'No. HP',
+                value: order.customerPhone.isEmpty ? '-' : order.customerPhone,
+              ),
               _Meta(label: 'Layanan', value: order.layanan),
               _Meta(label: 'Berat', value: '${order.berat} kg'),
               _Meta(label: 'Bayar', value: order.statusBayar),

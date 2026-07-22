@@ -47,7 +47,7 @@ Tujuan utama:
 
 ### 4.3 Buat Pesanan
 
-- Pengguna mengisi nama pelanggan, berat laundry, dan jenis layanan.
+- Pengguna mengisi nama pelanggan, nomor HP, berat laundry, dan jenis layanan.
 - Sistem menghitung subtotal otomatis dengan rumus:
 
 ```text
@@ -63,6 +63,8 @@ Total = subtotal - diskon
 
 - Validasi:
   - Nama wajib diisi.
+  - Nomor HP wajib diisi.
+  - Nomor HP harus memiliki format yang valid.
   - Berat wajib diisi.
   - Berat harus lebih dari 0.
   - Setelah berhasil, pesanan disimpan ke database Supabase.
@@ -183,6 +185,7 @@ Alur aplikasi dibagi berdasarkan peran pengguna, yaitu pelanggan dan admin. Pemi
 4. Sistem menampilkan form pesanan.
 5. Pelanggan mengisi:
    - Nama pelanggan
+   - Nomor HP
    - Berat laundry
    - Jenis layanan
 6. Sistem menghitung estimasi total secara otomatis berdasarkan berat dan harga layanan.
@@ -190,6 +193,8 @@ Alur aplikasi dibagi berdasarkan peran pengguna, yaitu pelanggan dan admin. Pemi
 7. Pelanggan menekan tombol **Buat pesanan**.
 8. Sistem melakukan validasi:
    - Nama pelanggan wajib diisi.
+   - Nomor HP wajib diisi.
+   - Nomor HP harus valid.
    - Berat wajib diisi.
    - Berat harus lebih dari 0.
    - Layanan harus dipilih.
@@ -212,6 +217,7 @@ Alur aplikasi dibagi berdasarkan peran pengguna, yaitu pelanggan dan admin. Pemi
 5. Sistem menampilkan detail pesanan, meliputi:
    - Kode pesanan
    - Nama pelanggan
+   - Nomor HP
    - Tanggal pesanan
    - Layanan
    - Berat
@@ -244,6 +250,7 @@ Alur aplikasi dibagi berdasarkan peran pengguna, yaitu pelanggan dan admin. Pemi
 1. Pelanggan diarahkan ke halaman Pembayaran setelah berhasil membuat pesanan, atau membuka halaman Pembayaran dari detail pesanan jika pesanan belum dibayar.
 2. Sistem menampilkan ringkasan tagihan:
    - Nama pelanggan
+   - Nomor HP
    - Layanan
    - Berat
    - Harga satuan
@@ -309,6 +316,7 @@ Field:
 - `orderCode`
 - `customerUsername`
 - `nama`
+- `customerPhone`
 - `berat`
 - `layanan`
 - `subtotal`

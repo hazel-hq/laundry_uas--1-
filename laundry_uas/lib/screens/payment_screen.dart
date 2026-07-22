@@ -164,6 +164,12 @@ class _PaymentScreenState extends State<PaymentScreen> {
                   ),
                   const SizedBox(height: 14),
                   _BillRow(label: 'Nama', value: widget.order.nama),
+                  _BillRow(
+                    label: 'Nomor HP',
+                    value: widget.order.customerPhone.isEmpty
+                        ? '-'
+                        : widget.order.customerPhone,
+                  ),
                   _BillRow(label: 'Layanan', value: widget.order.layanan),
                   _BillRow(label: 'Berat', value: '${widget.order.berat} kg'),
                   _BillRow(

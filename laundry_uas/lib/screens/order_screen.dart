@@ -12,6 +12,7 @@ class OrderScreen extends StatefulWidget {
 
 class _OrderScreenState extends State<OrderScreen> {
   final _nama = TextEditingController();
+  final _phone = TextEditingController();
   final _berat = TextEditingController();
   String _layanan = 'Cuci';
   static const _purple = Color(0xFF6C63FF);
@@ -84,17 +85,31 @@ class _OrderScreenState extends State<OrderScreen> {
   @override
   void dispose() {
     _nama.dispose();
+    _phone.dispose();
     _berat.dispose();
     super.dispose();
   }
 
   Future<void> _simpan() async {
-    if (_nama.text.isEmpty || _berat.text.isEmpty) {
+    final phone = _phone.text.trim();
+
+    if (_nama.text.trim().isEmpty || phone.isEmpty || _berat.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Nama dan berat wajib diisi')),
+        const SnackBar(content: Text('Nama, nomor HP, dan berat wajib diisi')),
       );
       return;
     }
+
+    final normalizedPhone = phone.replaceAll(RegExp(r'[\s-]'), '');
+    if (normalizedPhone.length < 10 ||
+        normalizedPhone.length > 15 ||
+        !RegExp(r'^\+?\d+$').hasMatch(normalizedPhone)) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Nomor HP belum valid')));
+      return;
+    }
+
     final berat = double.tryParse(_berat.text) ?? 0;
     if (berat <= 0) {
       ScaffoldMessenger.of(
@@ -109,7 +124,8 @@ class _OrderScreenState extends State<OrderScreen> {
       final order = await orderRepository.createOrder(
         Order(
           id: DateTime.now().millisecondsSinceEpoch.toString(),
-          nama: _nama.text,
+          nama: _nama.text.trim(),
+          customerPhone: phone,
           berat: berat,
           layanan: _layanan,
           subtotal: _subtotal,
@@ -188,6 +204,13 @@ class _OrderScreenState extends State<OrderScreen> {
                   ),
                   const SizedBox(height: 12),
                   _buildField(_nama, 'Nama lengkap', Icons.person_outline),
+                  const SizedBox(height: 12),
+                  _buildField(
+                    _phone,
+                    'Nomor HP',
+                    Icons.phone_outlined,
+                    keyboardType: TextInputType.phone,
+                  ),
                   const SizedBox(height: 12),
                   _buildField(
                     _berat,
@@ -468,10 +491,13 @@ class _OrderScreenState extends State<OrderScreen> {
     String label,
     IconData icon, {
     bool isNumber = false,
+    TextInputType? keyboardType,
   }) {
     return TextField(
       controller: ctrl,
-      keyboardType: isNumber ? TextInputType.number : TextInputType.text,
+      keyboardType:
+          keyboardType ??
+          (isNumber ? TextInputType.number : TextInputType.text),
       onChanged: (_) => setState(() {}),
       style: const TextStyle(fontSize: 14),
       decoration: InputDecoration(

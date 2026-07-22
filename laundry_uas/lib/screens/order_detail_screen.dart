@@ -157,6 +157,12 @@ class OrderDetailScreen extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 14),
+                  _InfoRow(
+                    label: 'Nomor HP',
+                    value: order.customerPhone.isEmpty
+                        ? '-'
+                        : order.customerPhone,
+                  ),
                   _InfoRow(label: 'Layanan', value: order.layanan),
                   _InfoRow(label: 'Berat', value: '${order.berat} kg'),
                   _InfoRow(

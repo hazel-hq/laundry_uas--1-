@@ -3,6 +3,7 @@ class Order {
   final String orderCode;
   final String? customerUsername;
   String nama;
+  String customerPhone;
   double berat;
   String layanan;
   double subtotal;
@@ -17,6 +18,7 @@ class Order {
     String? orderCode,
     this.customerUsername,
     required this.nama,
+    this.customerPhone = '',
     required this.berat,
     required this.layanan,
     required this.total,
@@ -41,6 +43,7 @@ class Order {
       orderCode: '${data['order_code'] ?? 'LDR-${_shortId('${data['id']}')}'}',
       customerUsername: data['customer_username']?.toString(),
       nama: '${data['customer_name'] ?? '-'}',
+      customerPhone: '${data['customer_phone'] ?? ''}',
       berat: _asDouble(firstItem['weight_kg']),
       layanan: '${firstItem['service_name'] ?? '-'}',
       subtotal: _asDouble(data['subtotal']),
@@ -78,6 +81,7 @@ class Order {
   Map<String, dynamic> toOrderInsert({String? username}) {
     return {
       'customer_name': nama,
+      'customer_phone': customerPhone,
       'customer_username': username,
       'status': status,
       'payment_status': statusBayar,

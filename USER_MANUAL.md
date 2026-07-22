@@ -151,6 +151,7 @@ Langkah membuat pesanan:
 3. Tekan tombol **Buat Pesanan Baru**.
 4. Isi data pelanggan:
    - Nama lengkap
+   - Nomor HP
    - Berat laundry dalam kilogram
 5. Pilih layanan laundry:
    - Cuci
@@ -163,6 +164,8 @@ Langkah membuat pesanan:
 Validasi pesanan:
 
 - Nama wajib diisi.
+- Nomor HP wajib diisi.
+- Nomor HP harus berisi 10 sampai 15 digit angka dan boleh diawali tanda plus.
 - Berat wajib diisi.
 - Berat harus lebih dari 0.
 - Layanan harus dipilih.
@@ -205,6 +208,7 @@ Setelah pesanan berhasil dibuat, pelanggan langsung diarahkan ke halaman Pembaya
 Informasi yang ditampilkan:
 
 - Nama pelanggan.
+- Nomor HP.
 - Layanan.
 - Berat.
 - Harga satuan.
@@ -269,6 +273,7 @@ Informasi yang ditampilkan:
 
 - Kode pesanan.
 - Nama pelanggan.
+- Nomor HP.
 - Tanggal pesanan.
 - Status pesanan.
 - Layanan.
@@ -428,6 +433,7 @@ Solusi:
 Penyebab:
 
 - Nama pelanggan kosong.
+- Nomor HP kosong atau tidak valid.
 - Berat kosong atau tidak valid.
 - Koneksi database bermasalah.
 - Konfigurasi Supabase belum benar.
@@ -435,6 +441,7 @@ Penyebab:
 Solusi:
 
 - Isi nama dan berat dengan benar.
+- Isi nomor HP aktif dengan format yang benar.
 - Pastikan berat lebih dari 0.
 - Periksa koneksi internet.
 - Periksa konfigurasi Supabase.
@@ -510,4 +517,3 @@ Buka aplikasi
 ## 26. Penutup
 
 User manual ini dibuat untuk membantu pengguna memahami cara menggunakan aplikasi FreshLaundry. Dengan adanya panduan ini, pelanggan dapat melakukan pemesanan dan pembayaran dengan lebih mudah, sementara admin dapat mengelola status pesanan dengan lebih jelas.
-
