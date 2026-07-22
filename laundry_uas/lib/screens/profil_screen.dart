@@ -13,13 +13,11 @@ class _PT {
   static const bg = Color(0xFFF5F6FA);
   static const ink = Color(0xFF1A1A2E);
 
-  static const rXl = 28.0;
   static const rLg = 20.0;
   static const rMd = 16.0;
   static const rSm = 12.0;
   static const rPill = 999.0;
 
-  static const s4 = 4.0;
   static const s8 = 8.0;
   static const s12 = 12.0;
   static const s16 = 16.0;
