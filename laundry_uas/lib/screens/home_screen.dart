@@ -120,15 +120,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         child: NavigationBar(
           selectedIndex: _tab,
-          onDestinationSelected: (i) async {
-            // History & Tracking hanya untuk member
-            if ((i == 1 || i == 2) && currentAppUser == null) {
-              await showLoginRequiredDialog(context);
-              return;
-            }
-
-            setState(() => _tab = i);
-          },
+          onDestinationSelected: (i) => setState(() => _tab = i),
           backgroundColor: Colors.white,
           indicatorColor: _T.purpleContainer,
           elevation: 0,
