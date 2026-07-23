@@ -9,6 +9,7 @@ import 'tracking_list_screen.dart';
 import 'login_required_dialog.dart';
 import 'notification_sheet.dart';
 import '../services/in_app_notification_service.dart';
+import '../services/app_update_service.dart';
 
 // ============================================================
 // DESIGN TOKENS
@@ -72,6 +73,9 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     _loadOrders();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      AppUpdateService.instance.checkForPlayStoreUpdate(context);
+    });
   }
 
   Future<void> _loadOrders() async {
