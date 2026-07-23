@@ -90,16 +90,18 @@ Total = subtotal - diskon
 
 ### 4.6 Tracking Pesanan
 
-- Menampilkan status pesanan saat ini.
+- Menampilkan kartu status saat ini, deskripsi proses, dan indikator kemajuan langkah.
 - Status yang tersedia:
   - Menunggu
   - Dicuci
   - Dijemur
   - Selesai
   - Diantar
-- Menampilkan progress dalam bentuk timeline.
+- Menampilkan progress dalam bentuk timeline vertikal yang membedakan tahap selesai, tahap saat ini, dan tahap berikutnya.
+- Setiap tahap menampilkan ikon, judul status, serta deskripsi proses laundry.
 - Pelanggan dapat melihat perkembangan status pesanan.
 - Perubahan status dilakukan oleh admin melalui Dashboard Admin.
+- Saat aplikasi pelanggan terhubung, perubahan status ditampilkan sebagai notifikasi aplikasi melalui Supabase Realtime.
 
 ### 4.7 Pembayaran
 
@@ -108,7 +110,7 @@ Total = subtotal - diskon
   - QRIS
   - COD / Tunai
 - Untuk QRIS:
-  - Menampilkan placeholder QR.
+  - Menampilkan QRIS pembayaran statis.
   - Menampilkan nominal transfer.
   - Menampilkan nomor rekening / QRIS ID.
   - Pengguna dapat menyalin nomor pembayaran.
@@ -242,8 +244,10 @@ Alur aplikasi dibagi berdasarkan peran pengguna, yaitu pelanggan dan admin. Pemi
    - `Dijemur`
    - `Selesai`
    - `Diantar`
-5. Pelanggan hanya melihat perkembangan status pesanan.
-6. Perubahan status dilakukan oleh admin melalui Dashboard Admin.
+5. Timeline memberi penanda `Selesai` pada tahap yang telah lewat dan `Sekarang` pada tahap aktif.
+6. Pelanggan hanya melihat perkembangan status pesanan.
+7. Perubahan status dilakukan oleh admin melalui Dashboard Admin.
+8. Saat aplikasi pelanggan aktif dan terhubung, perubahan status memicu notifikasi aplikasi.
 
 ### 5.6 Alur Pembayaran Pelanggan
 
@@ -289,7 +293,7 @@ Alur aplikasi dibagi berdasarkan peran pengguna, yaitu pelanggan dan admin. Pemi
    - `Selesai`
    - `Diantar`
 6. Sistem menyimpan perubahan status ke database.
-7. Perubahan status langsung terlihat pada halaman riwayat dan tracking pelanggan.
+7. Perubahan status langsung terlihat pada halaman riwayat dan tracking pelanggan, serta memicu notifikasi aplikasi saat pelanggan terhubung.
 8. Admin dapat melakukan refresh data untuk melihat pesanan terbaru.
 9. Admin dapat logout dari Dashboard Admin.
 
@@ -351,10 +355,8 @@ Data pesanan tetap tersimpan di Supabase selama proses simpan ke database berhas
 
 - Autentikasi masih menggunakan tabel demo `app_users`, belum menggunakan Supabase Auth resmi.
 - Password akun demo masih disimpan untuk kebutuhan simulasi aplikasi.
-- QRIS masih berupa placeholder.
-- Profil belum masuk ke bottom navigation.
 - Belum ada fitur alamat jemput/antar.
-- Belum ada notifikasi status pesanan.
+- Notifikasi status menggunakan koneksi Realtime dan notifikasi lokal; notifikasi saat aplikasi benar-benar ditutup masih memerlukan Firebase Cloud Messaging.
 
 ## 9. Rekomendasi Pengembangan Berikutnya
 
@@ -363,6 +365,7 @@ Data pesanan tetap tersimpan di Supabase selama proses simpan ke database berhas
 - Perkuat RLS agar akses pelanggan benar-benar dibatasi di level database.
 - Tambahkan alamat pelanggan dan opsi antar/jemput.
 - Tambahkan QRIS asli atau upload bukti transfer.
+- Tambahkan Firebase Cloud Messaging agar pembaruan status diterima ketika aplikasi ditutup.
 - Tambahkan persistensi data lokal sementara menggunakan shared preferences atau database lokal.
 - Hubungkan screen profil ke navigasi utama.
 - Tambahkan testing untuk validasi pesanan dan perhitungan harga.

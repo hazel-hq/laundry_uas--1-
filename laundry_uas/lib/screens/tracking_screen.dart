@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../models/app_user.dart';
 import '../models/order.dart';
 import '../models/order_data.dart';
+import '../theme/app_theme.dart';
 
 class TrackingScreen extends StatefulWidget {
   final Order order;
@@ -14,8 +15,8 @@ class TrackingScreen extends StatefulWidget {
 }
 
 class _TrackingScreenState extends State<TrackingScreen> {
-  static const _purple = Color(0xFF6C63FF);
-  static const _darkText = Color(0xFF1A1A2E);
+  static const _purple = AppTheme.purple;
+  static const _darkText = AppTheme.textDark;
 
   static const _statusOptions = [
     _StatusStep(
@@ -105,16 +106,8 @@ class _TrackingScreenState extends State<TrackingScreen> {
     final bool isAdmin = currentAppUser?.isAdmin ?? false;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F6FA),
-      appBar: AppBar(
-        title: const Text(
-          'Tracking pesanan',
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-        ),
-        backgroundColor: Colors.white,
-        foregroundColor: _darkText,
-        elevation: 0,
-      ),
+      backgroundColor: AppTheme.background,
+      appBar: AppBar(title: const Text('Tracking pesanan')),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
@@ -128,20 +121,8 @@ class _TrackingScreenState extends State<TrackingScreen> {
               ),
               const SizedBox(height: 12),
               _OrderInfoCard(order: widget.order),
-              const SizedBox(height: 20),
-              const Text(
-                'Riwayat status',
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.grey,
-                ),
-              ),
-              const SizedBox(height: 12),
-              _TimelineCard(
-                statuses: _statusOptions,
-                currentIdx: _currentIdx,
-              ),
+              const SizedBox(height: 24),
+              _TimelineCard(statuses: _statusOptions, currentIdx: _currentIdx),
               const SizedBox(height: 20),
               if (!isAdmin) ...[
                 _CustomerInfoBanner(),
@@ -261,11 +242,17 @@ class _OrderInfoCard extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Expanded(child: _MiniInfo(label: 'Pelanggan', value: order.nama)),
+          Expanded(
+            child: _MiniInfo(label: 'Pelanggan', value: order.nama),
+          ),
           _DividerLine(),
-          Expanded(child: _MiniInfo(label: 'Layanan', value: order.layanan)),
+          Expanded(
+            child: _MiniInfo(label: 'Layanan', value: order.layanan),
+          ),
           _DividerLine(),
-          Expanded(child: _MiniInfo(label: 'Berat', value: '${order.berat} kg')),
+          Expanded(
+            child: _MiniInfo(label: 'Berat', value: '${order.berat} kg'),
+          ),
         ],
       ),
     );
@@ -284,123 +271,149 @@ class _TimelineCard extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.shade100, width: 0.5),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: const Color(0xFFE9EAF0)),
+        boxShadow: AppTheme.softShadow,
       ),
       child: Column(
-        children: List.generate(statuses.length, (i) {
-          final done = i <= currentIdx;
-          final isCurrent = i == currentIdx;
-          final isLast = i == statuses.length - 1;
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Perjalanan pesanan',
+            style: TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.w700,
+              color: _TrackingScreenState._darkText,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'Status akan diperbarui pada setiap tahap pengerjaan laundry.',
+            style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
+          ),
+          const SizedBox(height: 18),
+          ...List.generate(statuses.length, (i) {
+            final done = i <= currentIdx;
+            final isCurrent = i == currentIdx;
+            final isLast = i == statuses.length - 1;
 
-          return Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Column(
-                children: [
-                  Container(
-                    width: 28,
-                    height: 28,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: done
-                          ? (isCurrent
-                                ? _TrackingScreenState._purple
-                                : const Color(0xFFEEEDFE))
-                          : Colors.grey.shade100,
-                      border: Border.all(
-                        color: done
-                            ? _TrackingScreenState._purple
-                            : Colors.grey.shade300,
-                        width: isCurrent ? 2 : 0.5,
-                      ),
-                    ),
-                    child: Center(
-                      child: done
-                          ? Icon(
-                              isCurrent ? statuses[i].icon : Icons.check,
-                              size: 14,
-                              color: isCurrent
-                                  ? Colors.white
-                                  : _TrackingScreenState._purple,
-                            )
-                          : Text(
-                              '${i + 1}',
-                              style: TextStyle(
-                                fontSize: 11,
-                                color: Colors.grey.shade400,
-                              ),
-                            ),
-                    ),
-                  ),
-                  if (!isLast)
+            return Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Column(
+                  children: [
                     Container(
-                      width: 2,
-                      height: 40,
+                      width: 32,
+                      height: 32,
                       decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: isCurrent
+                            ? _TrackingScreenState._purple
+                            : done
+                            ? const Color(0xFFE9E9FF)
+                            : const Color(0xFFF1F2F6),
+                        border: Border.all(
+                          color: done
+                              ? _TrackingScreenState._purple
+                              : const Color(0xFFD9DBE5),
+                          width: isCurrent ? 2 : 1,
+                        ),
+                      ),
+                      child: Icon(
+                        done
+                            ? (isCurrent ? statuses[i].icon : Icons.check)
+                            : statuses[i].icon,
+                        size: 16,
+                        color: done
+                            ? (isCurrent
+                                  ? Colors.white
+                                  : _TrackingScreenState._purple)
+                            : Colors.grey.shade400,
+                      ),
+                    ),
+                    if (!isLast)
+                      Container(
+                        width: 2,
+                        height: 56,
                         color: i < currentIdx
-                            ? const Color(0xFFEEEDFE)
-                            : Colors.grey.shade100,
-                        borderRadius: BorderRadius.circular(1),
+                            ? const Color(0xFFBDBDFF)
+                            : const Color(0xFFE7E8EF),
                       ),
-                    ),
-                ],
-              ),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Padding(
-                  padding: EdgeInsets.only(top: 4, bottom: isLast ? 0 : 24),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        statuses[i].label,
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: isCurrent
-                              ? FontWeight.w600
-                              : FontWeight.w400,
-                          color: done
-                              ? _TrackingScreenState._darkText
-                              : Colors.grey.shade400,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        statuses[i].desc,
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: done
-                              ? Colors.grey.shade500
-                              : Colors.grey.shade300,
-                        ),
-                      ),
-                    ],
-                  ),
+                  ],
                 ),
-              ),
-              if (isCurrent)
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 3,
-                  ),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFEEEDFE),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: const Text(
-                    'Sekarang',
-                    style: TextStyle(
-                      fontSize: 10,
-                      color: _TrackingScreenState._purple,
-                      fontWeight: FontWeight.w500,
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Container(
+                    margin: EdgeInsets.only(bottom: isLast ? 0 : 14),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 10,
+                    ),
+                    decoration: BoxDecoration(
+                      color: isCurrent
+                          ? const Color(0xFFF1F1FF)
+                          : done
+                          ? const Color(0xFFF8F8FC)
+                          : Colors.transparent,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          statuses[i].label,
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: isCurrent
+                                ? FontWeight.w700
+                                : FontWeight.w600,
+                            color: done
+                                ? _TrackingScreenState._darkText
+                                : Colors.grey.shade400,
+                          ),
+                        ),
+                        const SizedBox(height: 3),
+                        Text(
+                          statuses[i].desc,
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: done
+                                ? Colors.grey.shade600
+                                : Colors.grey.shade400,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
-            ],
-          );
-        }),
+                if (isCurrent || done)
+                  Container(
+                    margin: const EdgeInsets.only(top: 9),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 3,
+                    ),
+                    decoration: BoxDecoration(
+                      color: isCurrent
+                          ? const Color(0xFFDEDEFF)
+                          : const Color(0xFFE6F4EA),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      isCurrent ? 'Sekarang' : 'Selesai',
+                      style: TextStyle(
+                        fontSize: 10,
+                        color: isCurrent
+                            ? _TrackingScreenState._purple
+                            : const Color(0xFF2E7D32),
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+              ],
+            );
+          }),
+        ],
       ),
     );
   }

@@ -44,13 +44,13 @@
 | 22 | Tampilan Diskon | Menampilkan status diskon bulanan, subtotal, potongan diskon, dan total bayar | Faruq, Yanita | Pelanggan memahami rincian tagihan |
 | 23 | Alur Setelah Pesan | Mengarahkan pelanggan langsung ke halaman Pembayaran setelah pesanan berhasil dibuat | Yanita | Alur pemesanan tidak membingungkan |
 | 24 | Halaman Pembayaran | Membuat halaman pembayaran berisi ringkasan tagihan, subtotal, diskon, dan total akhir | Faruq | Tagihan tampil lengkap |
-| 25 | Metode QRIS | Membuat tampilan pembayaran QRIS, QR placeholder, nominal transfer, dan tombol salin | Faruq | Pembayaran QRIS dapat disimulasikan |
+| 25 | Metode QRIS | Menampilkan QRIS pembayaran, nominal transfer, dan tombol salin | Faruq | Pembayaran QRIS dapat dipindai dan disimulasikan |
 | 26 | Metode COD | Membuat tampilan pembayaran tunai / COD dan instruksi pembayaran | Faruq | Pembayaran COD dapat disimulasikan |
 | 27 | Konfirmasi Pembayaran | Menyimpan pembayaran dan mengubah status pembayaran menjadi Lunas | Adzriel, Yanita | Status pembayaran berubah dengan benar |
 | 28 | Riwayat Pesanan | Membuat halaman riwayat pesanan selesai, pencarian, dan ringkasan pengeluaran | Faruq, Adzriel | Riwayat pesanan dapat dilihat |
 | 29 | Filter Riwayat | Membuat filter riwayat berdasarkan layanan: Semua, Cuci, Setrika, Express, dan Cuci+Setrika | Faruq | Riwayat dapat difilter berdasarkan layanan |
 | 30 | Detail Pesanan | Membuat halaman detail pesanan berisi data pelanggan, nomor HP, layanan, subtotal, diskon, total, status, dan pembayaran | Faruq | Detail pesanan tampil lengkap |
-| 31 | Tracking Pesanan | Membuat halaman tracking dengan timeline status Menunggu, Dicuci, Dijemur, Selesai, dan Diantar | Faruq, Yanita | Pelanggan dapat memantau status pesanan |
+| 31 | Timeline Tracking Pesanan | Membuat timeline visual dengan tahap selesai, tahap aktif, dan tahap berikutnya untuk status Menunggu, Dicuci, Dijemur, Selesai, dan Diantar | Faruq, Yanita | Pelanggan dapat memantau progres pesanan dengan jelas |
 | 32 | Dashboard Admin | Membuat dashboard admin berisi total pesanan, pesanan aktif, lunas, selesai, dan daftar pesanan | Faruq, Adzriel | Admin dapat memantau pesanan |
 | 33 | Update Status Admin | Membuat dropdown untuk mengubah status pesanan pelanggan | Adzriel, Faruq | Admin dapat memperbarui progress laundry |
 | 34 | Refresh Data Admin | Membuat fitur refresh data pesanan pada dashboard admin | Faruq | Admin dapat mengambil data terbaru |
@@ -64,6 +64,7 @@
 | 42 | User Manual | Menyusun user manual lengkap untuk pelanggan, guest, dan admin | Yanita | `USER_MANUAL.md` tersedia |
 | 43 | Dokumentasi Database | Menyusun dokumentasi struktur database dan cara menjalankan migration | Adzriel | Dokumentasi database tersedia |
 | 44 | Screenshot / Presentasi | Menyiapkan screenshot tampilan aplikasi untuk laporan atau presentasi | Faruq | Materi presentasi lebih lengkap |
+| 45 | Notifikasi Status Pesanan | Menampilkan notifikasi lokal saat status tracking pelanggan diperbarui melalui Supabase Realtime | Adzriel, Yanita | Pelanggan yang terhubung menerima pembaruan status |
 
 ## Pembagian Modul Berdasarkan PRD
 
@@ -107,7 +108,7 @@
 | 13 | Rincian subtotal, diskon, dan total tampil di pembayaran | Selesai |
 | 14 | Riwayat pesanan tampil | Belum dicek final |
 | 15 | Detail pesanan tampil | Belum dicek final |
-| 16 | Tracking pesanan tampil | Belum dicek final |
+| 16 | Timeline tracking pesanan tampil dengan status selesai, aktif, dan berikutnya | Selesai |
 | 17 | Pembayaran dapat dikonfirmasi | Belum dicek final |
 | 18 | Admin dapat melihat seluruh pesanan | Belum dicek final |
 | 19 | Admin dapat mengubah status pesanan | Belum dicek final |
@@ -127,3 +128,5 @@
 | 3 | Fitur diskon bulanan belum tercantum | Ditambahkan sebagai task dan modul tersendiri |
 | 4 | Alur setelah membuat pesanan belum ditegaskan | Disesuaikan menjadi langsung ke halaman Pembayaran |
 | 5 | User manual belum tercantum | Ditambahkan sebagai bagian dokumentasi akhir |
+| 6 | Timeline tracking hanya dicatat sebagai status umum | Diperjelas menjadi timeline visual dengan penanda tahap selesai, aktif, dan berikutnya |
+| 7 | Notifikasi perubahan status belum tercantum | Ditambahkan melalui Supabase Realtime dan notifikasi lokal saat aplikasi pelanggan terhubung |
