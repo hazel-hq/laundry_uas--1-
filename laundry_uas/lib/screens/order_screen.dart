@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/order.dart';
 import '../models/order_data.dart';
 import '../services/order_repository.dart';
+import '../theme/app_theme.dart';
 import 'payment_screen.dart';
 
 class OrderScreen extends StatefulWidget {
@@ -164,18 +165,12 @@ class _OrderScreenState extends State<OrderScreen> {
     final berat = double.tryParse(_berat.text) ?? 0;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F6FA),
+      backgroundColor: AppTheme.background,
       appBar: AppBar(
-        title: const Text(
-          'Buat pesanan',
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-        ),
-        backgroundColor: Colors.white,
-        foregroundColor: const Color(0xFF1a1a2e),
-        elevation: 0,
+        title: const Text('Buat pesanan'),
         bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(0.5),
-          child: Container(color: Colors.grey.shade200, height: 0.5),
+          preferredSize: const Size.fromHeight(1),
+          child: Container(color: const Color(0xFFE9EAF0), height: 1),
         ),
       ),
       body: SingleChildScrollView(
@@ -189,17 +184,18 @@ class _OrderScreenState extends State<OrderScreen> {
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: Colors.grey.shade100, width: 0.5),
+                border: Border.all(color: const Color(0xFFE9EAF0)),
+                boxShadow: AppTheme.softShadow,
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    'Data pelanggan',
+                    'Informasi pelanggan',
                     style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w500,
-                      color: Colors.grey,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      color: AppTheme.textDark,
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -238,6 +234,7 @@ class _OrderScreenState extends State<OrderScreen> {
                       : Colors.grey.shade100,
                   width: 0.5,
                 ),
+                boxShadow: AppTheme.softShadow,
               ),
               child: Row(
                 children: [
@@ -300,17 +297,18 @@ class _OrderScreenState extends State<OrderScreen> {
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: Colors.grey.shade100, width: 0.5),
+                border: Border.all(color: const Color(0xFFE9EAF0)),
+                boxShadow: AppTheme.softShadow,
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    'Pilih layanan',
+                    'Pilih layanan laundry',
                     style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w500,
-                      color: Colors.grey,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      color: AppTheme.textDark,
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -391,12 +389,14 @@ class _OrderScreenState extends State<OrderScreen> {
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFEEEDFE),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
-                    color: const Color(0xFF6C63FF),
-                    width: 0.5,
+                  gradient: const LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [Color(0xFFF4F3FF), Color(0xFFE9E9FF)],
                   ),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: const Color(0xFFB9BAFF)),
+                  boxShadow: AppTheme.softShadow,
                 ),
                 child: Column(
                   children: [
@@ -460,22 +460,15 @@ class _OrderScreenState extends State<OrderScreen> {
 
             SizedBox(
               width: double.infinity,
-              height: 50,
-              child: ElevatedButton(
+              height: 54,
+              child: ElevatedButton.icon(
                 onPressed: _saving ? null : _simpan,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: _purple,
-                  foregroundColor: Colors.white,
-                  elevation: 0,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                ),
-                child: Text(
+                icon: const Icon(Icons.arrow_forward_rounded, size: 20),
+                label: Text(
                   _saving ? 'Menyimpan...' : 'Buat pesanan',
                   style: const TextStyle(
                     fontSize: 15,
-                    fontWeight: FontWeight.w500,
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
               ),
@@ -499,29 +492,10 @@ class _OrderScreenState extends State<OrderScreen> {
           keyboardType ??
           (isNumber ? TextInputType.number : TextInputType.text),
       onChanged: (_) => setState(() {}),
-      style: const TextStyle(fontSize: 14),
+      style: const TextStyle(fontSize: 15, color: AppTheme.textDark),
       decoration: InputDecoration(
         labelText: label,
-        labelStyle: TextStyle(fontSize: 13, color: Colors.grey.shade500),
-        prefixIcon: Icon(icon, size: 20, color: Colors.grey.shade400),
-        filled: true,
-        fillColor: const Color(0xFFF5F6FA),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.grey.shade200, width: 0.5),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.grey.shade200, width: 0.5),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Color(0xFF6C63FF), width: 1),
-        ),
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 14,
-          vertical: 14,
-        ),
+        prefixIcon: Icon(icon, size: 20, color: AppTheme.textMuted),
       ),
     );
   }
