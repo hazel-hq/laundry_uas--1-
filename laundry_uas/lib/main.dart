@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'screens/login_screen.dart';
+import 'services/order_status_notification_service.dart';
 import 'supabase_config.dart';
 
 Future<void> main() async {
@@ -13,6 +14,8 @@ Future<void> main() async {
       publishableKey: SupabaseConfig.anonKey,
     );
   }
+
+  await orderStatusNotificationService.initialize();
 
   runApp(const MyApp());
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/app_user.dart';
 import '../services/auth_repository.dart';
+import '../services/order_status_notification_service.dart';
 import 'admin_screen.dart';
 import 'home_screen.dart';
 import 'register_screen.dart';
@@ -72,6 +73,8 @@ class _LoginScreenState extends State<LoginScreen> {
       }
 
       currentAppUser = user;
+      await orderStatusNotificationService.startForUser(user);
+      if (!mounted) return;
       user.isAdmin ? _goAdmin() : _goHome();
     } catch (e) {
       if (!mounted) return;
@@ -82,7 +85,8 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-  void _loginGuest() {
+  Future<void> _loginGuest() async {
+    await orderStatusNotificationService.stop();
     currentAppUser = null;
     _goHome();
   }

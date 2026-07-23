@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/app_user.dart';
+import '../services/order_status_notification_service.dart';
 import 'login_screen.dart';
 import 'faq_screen.dart';
 
@@ -424,7 +425,9 @@ class ProfileScreen extends StatelessWidget {
                   const SizedBox(width: 10),
                   Expanded(
                     child: ElevatedButton(
-                      onPressed: () {
+                      onPressed: () async {
+                        await orderStatusNotificationService.stop();
+                        if (!context.mounted) return;
                         currentAppUser = null;
 
                         Navigator.pop(context);

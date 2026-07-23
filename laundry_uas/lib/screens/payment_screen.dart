@@ -344,25 +344,23 @@ class _QrisSection extends StatelessWidget {
           ),
           const SizedBox(height: 14),
 
-          // QR placeholder
+          // QRIS pembayaran
           Container(
-            width: 180,
-            height: 180,
+            width: 220,
+            height: 220,
+            padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: const Color(0xFFF5F6FA),
+              color: Colors.white,
               borderRadius: BorderRadius.circular(12),
               border: Border.all(color: Colors.grey.shade200),
             ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.qr_code_2, size: 100, color: Colors.grey.shade300),
-                const SizedBox(height: 4),
-                Text(
-                  'QR laundry kamu',
-                  style: TextStyle(fontSize: 10, color: Colors.grey.shade400),
-                ),
-              ],
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(6),
+              child: Image.asset(
+                'assets/images/qris_payment.jpg',
+                fit: BoxFit.contain,
+                semanticLabel: 'QRIS pembayaran laundry',
+              ),
             ),
           ),
 

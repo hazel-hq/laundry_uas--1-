@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../models/app_user.dart';
 import '../models/order.dart';
 import '../models/order_data.dart';
+import '../services/order_status_notification_service.dart';
 import 'login_screen.dart';
 
 class AdminScreen extends StatefulWidget {
@@ -72,7 +73,9 @@ class _AdminScreenState extends State<AdminScreen> {
     }
   }
 
-  void _logout() {
+  Future<void> _logout() async {
+    await orderStatusNotificationService.stop();
+    if (!mounted) return;
     currentAppUser = null;
     Navigator.pushAndRemoveUntil(
       context,
