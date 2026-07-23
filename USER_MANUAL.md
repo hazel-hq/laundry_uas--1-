@@ -118,15 +118,16 @@ Setelah login sebagai pelanggan, aplikasi menampilkan bottom navigation dengan m
 
 ## 9. Home
 
-Halaman Home menampilkan ringkasan informasi pelanggan.
+Halaman Home menampilkan ringkasan informasi pelanggan dengan desain visual modern berbasis gradien ungu (`#6C63FF`), aksen gelembung laundry transparan (`_BubbleDecoration`), dan perpindahan antar-tab beranimasi halus (`AnimatedSwitcher`).
 
-Informasi yang tersedia:
+Informasi dan elemen yang tersedia:
 
 - Sapaan pengguna berdasarkan waktu.
 - Username pelanggan.
+- **Ikon Lonceng Notifikasi** (dengan indikator badge merah *unread count* saat ada pembaruan status laundry).
 - Jumlah total pesanan.
 - Jumlah pesanan aktif.
-- Promo atau informasi layanan.
+- Promo atau informasi langganan bulanan.
 - Tombol **Buat Pesanan Baru**.
 - Daftar layanan laundry.
 - Pesanan terbaru.
@@ -310,7 +311,23 @@ Langkah melihat tracking:
 Catatan:
 
 - Pelanggan hanya dapat melihat status.
-- Perubahan status dilakukan oleh admin.
+- Perubahan status dilakukan oleh admin melalui Dashboard Admin.
+
+### 15.1 Notifikasi Status Realtime & Feed Ikon Lonceng
+
+FreshLaundry dilengkapi fitur notifikasi pembaruan status laundry secara realtime.
+
+Alur & Cara Kerja Notifikasi:
+
+1. Ketika Admin mengubah status pesanan pelanggan (misal: `Menunggu` $\rightarrow$ `Dicuci` $\rightarrow$ `Dijemur` $\rightarrow$ `Selesai` $\rightarrow$ `Diantar`), Supabase Realtime akan mengirimkan sinyal perubahan ke aplikasi pelanggan.
+2. Perangkat pelanggan akan memicu **Local Push Notification** pada bar notifikasi HP.
+3. Ikon Lonceng di bagian atas kanan Home akan menampilkan **indikator dot merah** (*unread count badge*) sebagai tanda ada notifikasi baru yang belum dibaca.
+4. Tekan **Ikon Lonceng** untuk membuka lembaran notifikasi interaktif (`NotificationSheet`).
+5. Lembaran notifikasi menampilkan riwayat pembaruan status berisi:
+   - Ikon & warna status khusus (Dicuci: Biru 🧼, Dijemur: Oranye ☀️, Selesai: Hijau ✅, Diantar: Ungu 🛵).
+   - Kode pesanan dan deskripsi status baru.
+   - Keterangan waktu relatif (*"Baru saja"*, *"5 mnt lalu"*).
+6. Pengguna dapat menekan tombol **Hapus Semua** untuk membersihkan daftar notifikasi.
 
 ## 16. Profil
 
@@ -483,7 +500,7 @@ Beberapa fitur masih dalam tahap simulasi atau pengembangan:
 - QRIS masih berupa placeholder.
 - Belum ada upload bukti pembayaran.
 - Belum ada fitur alamat jemput dan antar.
-- Belum ada notifikasi real-time.
+- Notifikasi status realtime, local push notification, dan feed ikon lonceng in-app aktif saat aplikasi terhubung; notifikasi saat aplikasi ditutup total (killed state) memerlukan Firebase Cloud Messaging.
 - Beberapa menu profil masih berupa informasi atau placeholder.
 
 ## 24. Ringkasan Alur Utama Pelanggan

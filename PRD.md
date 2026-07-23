@@ -27,7 +27,8 @@ Tujuan utama:
 
 ### 4.1 Login
 
-- Pengguna dapat masuk menggunakan username dan password.
+- Pengguna dapat masuk menggunakan email, username, dan password.
+- Tampilan login menggunakan logo aset resmi `app_icon.png` ber-radius membulat dan efek bayangan lembut.
 - Pengguna dapat mendaftar sebagai pelanggan baru.
 - Pengguna dapat masuk sebagai guest.
 - Sistem membedakan role pelanggan dan admin.
@@ -37,12 +38,16 @@ Tujuan utama:
 ### 4.2 Home
 
 - Menampilkan sapaan berdasarkan waktu.
+- Tampilan Header Card & Kartu Buat Pesanan menggunakan gradien ungu (`#6C63FF`) dengan aksen dekoratif gelembung laundry transparan (`_BubbleDecoration`).
+- Navigasi antar-tab (Home, Riwayat, Tracking, Profil) menggunakan transisi halus `AnimatedSwitcher` (fade + slide).
+- Menampilkan ikon lonceng notifikasi interaktif dengan indikator badge merah (*unread count*) untuk pembaruan status pesanan realtime.
 - Menampilkan jumlah total pesanan.
 - Menampilkan jumlah pesanan aktif.
 - Menampilkan daftar layanan:
   - Cuci: Rp 5.000/kg
   - Setrika: Rp 4.000/kg
   - Express: Rp 8.000/kg
+  - Cuci+Setrika: Rp 8.500/kg
 - Menampilkan dua pesanan terbaru.
 
 ### 4.3 Buat Pesanan
@@ -88,7 +93,7 @@ Total = subtotal - diskon
 - Pengguna dapat masuk ke halaman tracking.
 - Pengguna dapat masuk ke halaman pembayaran jika status pembayaran masih "Belum dibayar".
 
-### 4.6 Tracking Pesanan
+### 4.6 Tracking Pesanan & Notifikasi Realtime
 
 - Menampilkan kartu status saat ini, deskripsi proses, dan indikator kemajuan langkah.
 - Status yang tersedia:
@@ -99,9 +104,14 @@ Total = subtotal - diskon
   - Diantar
 - Menampilkan progress dalam bentuk timeline vertikal yang membedakan tahap selesai, tahap saat ini, dan tahap berikutnya.
 - Setiap tahap menampilkan ikon, judul status, serta deskripsi proses laundry.
-- Pelanggan dapat melihat perkembangan status pesanan.
+- Pelanggan dapat melihat perkembangan status pesanan secara transparan.
 - Perubahan status dilakukan oleh admin melalui Dashboard Admin.
-- Saat aplikasi pelanggan terhubung, perubahan status ditampilkan sebagai notifikasi aplikasi melalui Supabase Realtime.
+- **Sistem Notifikasi Realtime & In-App Feed**:
+  - Saat admin mengubah status pesanan, Supabase Realtime mengirimkan payload update (`PostgresChangeEvent.update`).
+  - Aplikasi memicu **Local Push Notification** pada perangkat pengguna.
+  - Notifikasi disimpan ke dalam **In-App Notification Feed** yang dapat diakses dari ikon lonceng di Home.
+  - Ikon lonceng menampilkan **indikator dot merah** (*unread notification badge*) yang menyala otomatis saat ada pembaruan status baru.
+  - Membuka modal lembaran notifikasi (`NotificationSheet`) menampilkan daftar notifikasi dengan ikon & warna status khusus, waktu relatif, serta tombol hapus riwayat.
 
 ### 4.7 Pembayaran
 
@@ -356,7 +366,7 @@ Data pesanan tetap tersimpan di Supabase selama proses simpan ke database berhas
 - Autentikasi masih menggunakan tabel demo `app_users`, belum menggunakan Supabase Auth resmi.
 - Password akun demo masih disimpan untuk kebutuhan simulasi aplikasi.
 - Belum ada fitur alamat jemput/antar.
-- Notifikasi status menggunakan koneksi Realtime dan notifikasi lokal; notifikasi saat aplikasi benar-benar ditutup masih memerlukan Firebase Cloud Messaging.
+- Notifikasi status realtime, local push notification, dan feed ikon lonceng aplikasi aktif saat aplikasi berjalan atau latar belakang; notifikasi saat aplikasi ditutup total (killed state) membutuhkan integrasi Firebase Cloud Messaging (FCM).
 
 ## 9. Rekomendasi Pengembangan Berikutnya
 

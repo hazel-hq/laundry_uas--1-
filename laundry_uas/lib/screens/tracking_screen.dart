@@ -120,6 +120,11 @@ class _TrackingScreenState extends State<TrackingScreen> {
                 totalStatus: _statusOptions.length,
               ),
               const SizedBox(height: 12),
+              _EstimatedCompletionCard(
+                order: widget.order,
+                currentIdx: _currentIdx,
+              ),
+              const SizedBox(height: 12),
               _OrderInfoCard(order: widget.order),
               const SizedBox(height: 24),
               _TimelineCard(statuses: _statusOptions, currentIdx: _currentIdx),
@@ -138,6 +143,106 @@ class _TrackingScreenState extends State<TrackingScreen> {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _EstimatedCompletionCard extends StatelessWidget {
+  final Order order;
+  final int currentIdx;
+
+  const _EstimatedCompletionCard({
+    required this.order,
+    required this.currentIdx,
+  });
+
+  Duration get _duration => order.layanan.toLowerCase().contains('express')
+      ? const Duration(hours: 6)
+      : const Duration(hours: 24);
+
+  String _formatEstimate(DateTime date) {
+    const months = [
+      '', 'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun',
+      'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des',
+    ];
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final targetDay = DateTime(date.year, date.month, date.day);
+    final day = targetDay == today
+        ? 'Hari ini'
+        : targetDay == today.add(const Duration(days: 1))
+        ? 'Besok'
+        : '${date.day} ${months[date.month]}';
+    final hour = date.hour.toString().padLeft(2, '0');
+    final minute = date.minute.toString().padLeft(2, '0');
+    return '$day, $hour.$minute';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isFinished = currentIdx >= 3;
+    final isDelivering = currentIdx == 4;
+    final estimatedAt = order.orderedAt.add(_duration);
+    final title = isDelivering
+        ? 'Pesanan sedang diantar'
+        : isFinished
+        ? 'Laundry sudah siap'
+        : 'Estimasi selesai';
+    final detail = isDelivering
+        ? 'Kurir sedang menuju alamat Anda.'
+        : isFinished
+        ? 'Silakan ambil laundry Anda atau tunggu pengantaran.'
+        : '${_formatEstimate(estimatedAt)} · ${order.layanan}';
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: const Color(0xFFEAF7EF),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: const Color(0xFFC9E8D2)),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: const BoxDecoration(
+              color: Color(0xFFCFEED8),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.schedule_outlined,
+              color: Color(0xFF207A3D),
+              size: 21,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(
+                    color: Color(0xFF1B5E2E),
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  detail,
+                  style: const TextStyle(
+                    color: Color(0xFF39734A),
+                    fontSize: 12,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

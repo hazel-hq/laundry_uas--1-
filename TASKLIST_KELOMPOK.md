@@ -31,12 +31,12 @@
 | 9 | Repository Pesanan | Membuat service untuk mengambil, menyimpan, dan memperbarui data pesanan | Adzriel | Query pesanan berjalan |
 | 10 | Repository Pembayaran | Membuat service konfirmasi pembayaran | Adzriel | Data pembayaran tersimpan |
 | 11 | Fitur Diskon Bulanan | Membuat logika diskon otomatis 10% jika pelanggan sudah membuat minimal 5 pesanan dalam bulan berjalan | Adzriel, Yanita | Diskon otomatis diterapkan pada pesanan yang memenuhi syarat |
-| 12 | Halaman Login | Membuat dan merapikan form login dengan email, username, dan password | Faruq, Yanita | Halaman login lebih profesional |
+| 12 | Halaman Login | Membuat dan merapikan form login dengan email, username, password, dan logo aset `app_icon.png` | Faruq, Yanita | Halaman login lebih profesional dengan logo resmi |
 | 13 | Validasi Login | Memastikan email, username, dan password wajib diisi serta format email valid | Yanita | Login memiliki validasi dan pesan error |
 | 14 | Halaman Register | Membuat form registrasi pelanggan dengan email, nama lengkap, username, dan password | Faruq, Yanita | Pelanggan dapat membuat akun baru |
 | 15 | Validasi Register | Memastikan data register lengkap dan password minimal 6 karakter | Yanita | Registrasi lebih aman dan informatif |
 | 16 | Home Pelanggan | Membuat halaman Home berisi sapaan, ringkasan pesanan, layanan, promo, dan pesanan terbaru | Faruq | Home pelanggan tampil informatif |
-| 17 | Navigasi Utama | Membuat bottom navigation untuk Home, Riwayat, Tracking, dan Profil | Faruq | Navigasi aplikasi mudah digunakan |
+| 17 | Navigasi Utama | Membuat bottom navigation untuk Home, Riwayat, Tracking, dan Profil dengan transisi `AnimatedSwitcher` | Faruq | Navigasi aplikasi halus dan mudah digunakan |
 | 18 | Dialog Login Required | Membatasi guest agar harus login saat ingin membuat pesanan | Yanita | Guest tidak dapat membuat pesanan tanpa akun |
 | 19 | Form Buat Pesanan | Membuat form input nama pelanggan, nomor HP, berat laundry, dan pilihan layanan | Faruq | Pelanggan dapat mengisi data pesanan |
 | 20 | Validasi Pesanan | Memastikan nama, nomor HP, dan berat wajib diisi, nomor HP valid, serta berat harus lebih dari 0 | Yanita | Pesanan tidak valid dapat dicegah |
@@ -64,7 +64,8 @@
 | 42 | User Manual | Menyusun user manual lengkap untuk pelanggan, guest, dan admin | Yanita | `USER_MANUAL.md` tersedia |
 | 43 | Dokumentasi Database | Menyusun dokumentasi struktur database dan cara menjalankan migration | Adzriel | Dokumentasi database tersedia |
 | 44 | Screenshot / Presentasi | Menyiapkan screenshot tampilan aplikasi untuk laporan atau presentasi | Faruq | Materi presentasi lebih lengkap |
-| 45 | Notifikasi Status Pesanan | Menampilkan notifikasi lokal saat status tracking pelanggan diperbarui melalui Supabase Realtime | Adzriel, Yanita | Pelanggan yang terhubung menerima pembaruan status |
+| 45 | Notifikasi Status Pesanan | Menampilkan push notifikasi lokal & feed notifikasi lonceng ber-badge merah saat status tracking diperbarui via Supabase Realtime | Adzriel, Faruq, Yanita | Pelanggan yang terhubung menerima notifikasi & riwayat tersimpan |
+| 46 | Polishing UI/UX | Menambahkan aksen gelembung laundry (`_BubbleDecoration`) pada kartu utama dan transisi tab halus | Faruq | Tampilan aplikasi lebih modern & menarik |
 
 ## Pembagian Modul Berdasarkan PRD
 
@@ -129,4 +130,7 @@
 | 4 | Alur setelah membuat pesanan belum ditegaskan | Disesuaikan menjadi langsung ke halaman Pembayaran |
 | 5 | User manual belum tercantum | Ditambahkan sebagai bagian dokumentasi akhir |
 | 6 | Timeline tracking hanya dicatat sebagai status umum | Diperjelas menjadi timeline visual dengan penanda tahap selesai, aktif, dan berikutnya |
-| 7 | Notifikasi perubahan status belum tercantum | Ditambahkan melalui Supabase Realtime dan notifikasi lokal saat aplikasi pelanggan terhubung |
+| 7 | Notifikasi perubahan status belum tercantum | Ditambahkan melalui Supabase Realtime dan push notifikasi lokal saat aplikasi pelanggan terhubung |
+| 8 | Logo aplikasi masih memakai ikon generik Flutter | Diganti menggunakan logo aset resmi `app_icon.png` di Login, Splash, dan Profil |
+| 9 | Transisi navigasi tab masih instan | Diperbarui menggunakan `AnimatedSwitcher` (fade + slide) untuk perpindahan tab yang halus |
+| 10 | Riwayat notifikasi status belum tersimpan di UI | Ditambahkan feed notifikasi in-app pada ikon lonceng Home lengkap dengan unread badge merah dan modal `NotificationSheet` |

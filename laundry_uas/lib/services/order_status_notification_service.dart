@@ -4,6 +4,8 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/app_user.dart';
 import 'order_repository.dart';
 
+import 'in_app_notification_service.dart';
+
 /// Menampilkan notifikasi lokal ketika status order milik pelanggan berubah.
 ///
 /// Update dipantau melalui Supabase Realtime selama aplikasi tersambung.
@@ -78,6 +80,7 @@ class OrderStatusNotificationService {
     _knownStatuses[orderId] = status;
     if (previousStatus == null || previousStatus == status) return;
 
+    // 1. Tampilkan Push Notification di Device
     await _notifications.show(
       orderId.hashCode & 0x7fffffff,
       'Status pesanan diperbarui',
@@ -92,6 +95,30 @@ class OrderStatusNotificationService {
           priority: Priority.high,
         ),
       ),
+    );
+
+    // 2. Simpan ke Dalam Feed Notifikasi Aplikasi (Ikon Notifikasi)
+    inAppNotificationService.addNotification(
+      orderId: orderId,
+      orderCode: orderCode,
+      title: 'Status Pesanan Diperbarui',
+      message: 'Pesanan $orderCode kini berstatus "$status".',
+      status: status,
+    );
+  }
+
+  /// Memungkinkan penambahan notifikasi langsung saat admin mengupdate status
+  void notifyManualStatusChange({
+    required String orderId,
+    required String orderCode,
+    required String status,
+  }) {
+    inAppNotificationService.addNotification(
+      orderId: orderId,
+      orderCode: orderCode,
+      title: 'Status Pesanan Diperbarui',
+      message: 'Pesanan $orderCode kini berstatus "$status".',
+      status: status,
     );
   }
 }

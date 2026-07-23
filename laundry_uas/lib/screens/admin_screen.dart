@@ -52,6 +52,11 @@ class _AdminScreenState extends State<AdminScreen> {
   Future<void> _updateStatus(Order order, String status) async {
     try {
       await orderRepository.updateStatus(order.id, status);
+      orderStatusNotificationService.notifyManualStatusChange(
+        orderId: order.id,
+        orderCode: order.orderCode,
+        status: status,
+      );
       await _loadOrders();
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(

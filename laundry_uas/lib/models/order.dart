@@ -12,6 +12,7 @@ class Order {
   String status;
   String statusBayar;
   String tanggal;
+  final DateTime orderedAt;
 
   Order({
     required this.id,
@@ -27,9 +28,11 @@ class Order {
     this.status = 'Menunggu',
     this.statusBayar = 'Belum dibayar',
     String? tanggal,
+    DateTime? orderedAt,
   }) : orderCode = orderCode ?? 'LDR-${_shortId(id)}',
        subtotal = subtotal ?? total,
-       tanggal = tanggal ?? _today();
+       orderedAt = orderedAt ?? DateTime.now(),
+       tanggal = tanggal ?? _formatTanggal(orderedAt ?? DateTime.now());
 
   factory Order.fromSupabase(Map<String, dynamic> data) {
     final items = (data['order_items'] as List<dynamic>? ?? []);
@@ -51,6 +54,7 @@ class Order {
       total: _asDouble(data['total']),
       status: '${data['status'] ?? 'Menunggu'}',
       statusBayar: '${data['payment_status'] ?? 'Belum dibayar'}',
+      orderedAt: orderedAt,
       tanggal: orderedAt == null ? _today() : _formatTanggal(orderedAt),
     );
   }

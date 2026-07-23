@@ -268,16 +268,24 @@ class ProfileScreen extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               Container(
-                width: 60,
-                height: 60,
+                width: 64,
+                height: 64,
                 decoration: BoxDecoration(
-                  color: _PT.purpleContainer,
                   borderRadius: BorderRadius.circular(_PT.rSm),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.08),
+                      blurRadius: 12,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
                 ),
-                child: const Icon(
-                  Icons.local_laundry_service,
-                  color: _PT.purple,
-                  size: 32,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(_PT.rSm),
+                  child: Image.asset(
+                    'assets/app_icon.png',
+                    fit: BoxFit.cover,
+                  ),
                 ),
               ),
               const SizedBox(height: 14),
