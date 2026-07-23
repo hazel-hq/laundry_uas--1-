@@ -85,6 +85,7 @@ class Order {
       'customer_username': username,
       'status': status,
       'payment_status': statusBayar,
+      'subtotal': subtotal,
       'discount': discount,
     };
   }
