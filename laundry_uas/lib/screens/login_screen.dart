@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/app_user.dart';
 import '../services/auth_repository.dart';
+import '../services/order_status_notification_service.dart';
 import 'admin_screen.dart';
 import 'home_screen.dart';
 import 'register_screen.dart';
@@ -41,12 +42,12 @@ class _LoginScreenState extends State<LoginScreen> {
     final username = _username.text.trim();
 
     if (email.isEmpty || username.isEmpty || _password.text.isEmpty) {
-      setState(() => _error = 'Email, username, dan password wajib diisi');
+      setState(() => _error = 'Email, username, dan password wajib diisi.');
       return;
     }
 
     if (!email.contains('@') || !email.contains('.')) {
-      setState(() => _error = 'Format email belum valid');
+      setState(() => _error = 'Format email belum valid.');
       return;
     }
 
@@ -66,23 +67,26 @@ class _LoginScreenState extends State<LoginScreen> {
       if (user == null) {
         setState(() {
           _loading = false;
-          _error = 'Email, username, atau password salah';
+          _error = 'Email, username, atau password salah.';
         });
         return;
       }
 
       currentAppUser = user;
+      await orderStatusNotificationService.startForUser(user);
+      if (!mounted) return;
       user.isAdmin ? _goAdmin() : _goHome();
     } catch (e) {
       if (!mounted) return;
       setState(() {
         _loading = false;
-        _error = 'Gagal login: $e';
+        _error = 'Tidak dapat masuk. Periksa koneksi internet lalu coba lagi.';
       });
     }
   }
 
-  void _loginGuest() {
+  Future<void> _loginGuest() async {
+    await orderStatusNotificationService.stop();
     currentAppUser = null;
     _goHome();
   }
@@ -105,18 +109,26 @@ class _LoginScreenState extends State<LoginScreen> {
           child: Column(
             children: [
               const SizedBox(height: 60),
-              // Logo
+              // Logo App
               Container(
-                width: 90,
-                height: 90,
+                width: 84,
+                height: 84,
                 decoration: BoxDecoration(
-                  color: _purple,
-                  borderRadius: BorderRadius.circular(24),
+                  borderRadius: BorderRadius.circular(22),
+                  boxShadow: [
+                    BoxShadow(
+                      color: _purple.withValues(alpha: 0.25),
+                      blurRadius: 20,
+                      offset: const Offset(0, 8),
+                    ),
+                  ],
                 ),
-                padding: const EdgeInsets.all(12),
-                child: Image.asset(
-                  'assets/profil_laundry.png',
-                  fit: BoxFit.contain,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(22),
+                  child: Image.asset(
+                    'assets/app_icon.png',
+                    fit: BoxFit.cover,
+                  ),
                 ),
               ),
               const SizedBox(height: 20),
@@ -152,14 +164,6 @@ class _LoginScreenState extends State<LoginScreen> {
                         fontSize: 18,
                         fontWeight: FontWeight.w500,
                         color: Color(0xFF1a1a2e),
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      'Demo: pelanggan1@freshlaundry.test / pelanggan1 / 123456',
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: Colors.grey.shade500,
                       ),
                     ),
                     const SizedBox(height: 20),
@@ -220,7 +224,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                         ),
                         child: Text(
-                          _loading ? 'Memeriksa...' : 'Login',
+                          _loading ? 'Memeriksa...' : 'Masuk',
                           style: const TextStyle(
                             fontSize: 15,
                             fontWeight: FontWeight.w500,
@@ -251,7 +255,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 child: OutlinedButton.icon(
                   onPressed: _loginGuest,
                   icon: const Icon(Icons.person_outline, size: 18),
-                  label: const Text('Masuk sebagai Guest'),
+                  label: const Text('Lanjut tanpa akun'),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: _purple,
                     side: const BorderSide(

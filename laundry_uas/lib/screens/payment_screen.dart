@@ -164,13 +164,29 @@ class _PaymentScreenState extends State<PaymentScreen> {
                   ),
                   const SizedBox(height: 14),
                   _BillRow(label: 'Nama', value: widget.order.nama),
+                  _BillRow(
+                    label: 'Nomor HP',
+                    value: widget.order.customerPhone.isEmpty
+                        ? '-'
+                        : widget.order.customerPhone,
+                  ),
                   _BillRow(label: 'Layanan', value: widget.order.layanan),
                   _BillRow(label: 'Berat', value: '${widget.order.berat} kg'),
                   _BillRow(
                     label: 'Harga satuan',
                     value:
-                        'Rp ${(widget.order.total / widget.order.berat).toStringAsFixed(0)}/kg',
+                        'Rp ${widget.order.pricePerKg.toStringAsFixed(0)}/kg',
                   ),
+                  _BillRow(
+                    label: 'Subtotal',
+                    value: 'Rp ${widget.order.subtotal.toStringAsFixed(0)}',
+                  ),
+                  if (widget.order.hasDiscount)
+                    _BillRow(
+                      label: 'Diskon bulanan',
+                      value: '-Rp ${widget.order.discount.toStringAsFixed(0)}',
+                      valueColor: const Color(0xFF2E7D32),
+                    ),
                   const Divider(height: 20, thickness: 0.5),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -328,17 +344,23 @@ class _QrisSection extends StatelessWidget {
           ),
           const SizedBox(height: 14),
 
+          // QRIS pembayaran
           Container(
             width: 220,
-            padding: const EdgeInsets.all(12),
+            height: 220,
+            padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(12),
               border: Border.all(color: Colors.grey.shade200),
             ),
             child: ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: Image.asset('assets/qr_laundry.jpeg', fit: BoxFit.contain),
+              borderRadius: BorderRadius.circular(6),
+              child: Image.asset(
+                'assets/images/qris_payment.jpg',
+                fit: BoxFit.contain,
+                semanticLabel: 'QRIS pembayaran laundry',
+              ),
             ),
           ),
 
@@ -632,7 +654,9 @@ class _MetodeCard extends StatelessWidget {
 
 class _BillRow extends StatelessWidget {
   final String label, value;
-  const _BillRow({required this.label, required this.value});
+  final Color? valueColor;
+
+  const _BillRow({required this.label, required this.value, this.valueColor});
 
   @override
   Widget build(BuildContext context) {
@@ -647,10 +671,10 @@ class _BillRow extends StatelessWidget {
           ),
           Text(
             value,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w500,
-              color: Color(0xFF1a1a2e),
+              color: valueColor ?? const Color(0xFF1a1a2e),
             ),
           ),
         ],

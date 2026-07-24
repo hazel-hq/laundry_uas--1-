@@ -157,13 +157,28 @@ class OrderDetailScreen extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 14),
+                  _InfoRow(
+                    label: 'Nomor HP',
+                    value: order.customerPhone.isEmpty
+                        ? '-'
+                        : order.customerPhone,
+                  ),
                   _InfoRow(label: 'Layanan', value: order.layanan),
                   _InfoRow(label: 'Berat', value: '${order.berat} kg'),
                   _InfoRow(
                     label: 'Harga satuan',
-                    value:
-                        'Rp ${(order.total / order.berat).toStringAsFixed(0)}/kg',
+                    value: 'Rp ${order.pricePerKg.toStringAsFixed(0)}/kg',
                   ),
+                  _InfoRow(
+                    label: 'Subtotal',
+                    value: 'Rp ${order.subtotal.toStringAsFixed(0)}',
+                  ),
+                  if (order.hasDiscount)
+                    _InfoRow(
+                      label: 'Diskon bulanan',
+                      value: '-Rp ${order.discount.toStringAsFixed(0)}',
+                      valueColor: const Color(0xFF2E7D32),
+                    ),
                   const Divider(height: 24, thickness: 0.5),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -450,7 +465,9 @@ class OrderDetailScreen extends StatelessWidget {
 
 class _InfoRow extends StatelessWidget {
   final String label, value;
-  const _InfoRow({required this.label, required this.value});
+  final Color? valueColor;
+
+  const _InfoRow({required this.label, required this.value, this.valueColor});
 
   @override
   Widget build(BuildContext context) {
@@ -465,10 +482,10 @@ class _InfoRow extends StatelessWidget {
           ),
           Text(
             value,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w500,
-              color: Color(0xFF1a1a2e),
+              color: valueColor ?? const Color(0xFF1a1a2e),
             ),
           ),
         ],

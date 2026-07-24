@@ -9,15 +9,11 @@ class _FT {
   static const bg = Color(0xFFF5F6FA);
   static const ink = Color(0xFF1A1A2E);
 
-  static const rLg = 20.0;
   static const rMd = 16.0;
   static const rSm = 12.0;
   static const rPill = 999.0;
 
-  static const s8 = 8.0;
   static const s12 = 12.0;
-  static const s16 = 16.0;
-  static const s20 = 20.0;
 
   static List<BoxShadow> shadowSoft = [
     BoxShadow(
@@ -169,8 +165,7 @@ class _FaqScreenState extends State<FaqScreen> {
                 : ListView.separated(
                     padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
                     itemCount: results.length,
-                    separatorBuilder: (_, __) =>
-                        const SizedBox(height: _FT.s12),
+                    separatorBuilder: (_, _) => const SizedBox(height: _FT.s12),
                     itemBuilder: (context, index) {
                       return _FaqCard(item: results[index]);
                     },

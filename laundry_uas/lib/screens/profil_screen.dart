@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/app_user.dart';
+import '../services/order_status_notification_service.dart';
 import 'login_screen.dart';
 import 'faq_screen.dart';
 
@@ -13,13 +14,11 @@ class _PT {
   static const bg = Color(0xFFF5F6FA);
   static const ink = Color(0xFF1A1A2E);
 
-  static const rXl = 28.0;
   static const rLg = 20.0;
   static const rMd = 16.0;
   static const rSm = 12.0;
   static const rPill = 999.0;
 
-  static const s4 = 4.0;
   static const s8 = 8.0;
   static const s12 = 12.0;
   static const s16 = 16.0;
@@ -269,16 +268,24 @@ class ProfileScreen extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               Container(
-                width: 60,
-                height: 60,
+                width: 64,
+                height: 64,
                 decoration: BoxDecoration(
-                  color: _PT.purpleContainer,
                   borderRadius: BorderRadius.circular(_PT.rSm),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.08),
+                      blurRadius: 12,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
                 ),
-                child: const Icon(
-                  Icons.local_laundry_service,
-                  color: _PT.purple,
-                  size: 32,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(_PT.rSm),
+                  child: Image.asset(
+                    'assets/app_icon.png',
+                    fit: BoxFit.cover,
+                  ),
                 ),
               ),
               const SizedBox(height: 14),
@@ -426,7 +433,9 @@ class ProfileScreen extends StatelessWidget {
                   const SizedBox(width: 10),
                   Expanded(
                     child: ElevatedButton(
-                      onPressed: () {
+                      onPressed: () async {
+                        await orderStatusNotificationService.stop();
+                        if (!context.mounted) return;
                         currentAppUser = null;
 
                         Navigator.pop(context);

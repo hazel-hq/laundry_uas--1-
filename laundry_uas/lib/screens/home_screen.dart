@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../models/app_user.dart';
-import 'login_screen.dart';
 import '../models/order.dart';
 import '../models/order_data.dart';
 import 'history_screen.dart';
@@ -8,6 +7,9 @@ import 'order_screen.dart';
 import 'profil_screen.dart';
 import 'tracking_list_screen.dart';
 import 'login_required_dialog.dart';
+import 'notification_sheet.dart';
+import '../services/in_app_notification_service.dart';
+import '../services/app_update_service.dart';
 
 // ============================================================
 // DESIGN TOKENS
@@ -71,6 +73,9 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     _loadOrders();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      AppUpdateService.instance.checkForPlayStoreUpdate(context);
+    });
   }
 
   Future<void> _loadOrders() async {
@@ -92,22 +97,38 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: _T.bg,
-      body: switch (_tab) {
-        0 => _HomeTab(
-          loading: _loading,
-          error: _error,
-          onRefresh: _loadOrders,
-          onViewAll: () => setState(() => _tab = 1),
+      body: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 320),
+        switchInCurve: Curves.easeOutCubic,
+        switchOutCurve: Curves.easeInCubic,
+        transitionBuilder: (Widget child, Animation<double> animation) {
+          return FadeTransition(
+            opacity: animation,
+            child: SlideTransition(
+              position: Tween<Offset>(
+                begin: const Offset(0.04, 0),
+                end: Offset.zero,
+              ).animate(animation),
+              child: child,
+            ),
+          );
+        },
+        child: KeyedSubtree(
+          key: ValueKey<int>(_tab),
+          child: switch (_tab) {
+            0 => _HomeTab(
+              loading: _loading,
+              error: _error,
+              onRefresh: _loadOrders,
+              onViewAll: () => setState(() => _tab = 1),
+            ),
+            1 => HistoryScreen(onChanged: _loadOrders),
+            2 => TrackingListScreen(onChanged: _loadOrders),
+            3 => const ProfileScreen(),
+            _ => const SizedBox(),
+          },
         ),
-
-        1 => HistoryScreen(onChanged: _loadOrders),
-
-        2 => TrackingListScreen(onChanged: _loadOrders),
-
-        3 => const ProfileScreen(),
-
-        _ => const SizedBox(),
-      },
+      ),
       bottomNavigationBar: DecoratedBox(
         decoration: BoxDecoration(
           boxShadow: [
@@ -120,15 +141,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         child: NavigationBar(
           selectedIndex: _tab,
-          onDestinationSelected: (i) async {
-            // History & Tracking hanya untuk member
-            if ((i == 1 || i == 2) && currentAppUser == null) {
-              await showLoginRequiredDialog(context);
-              return;
-            }
-
-            setState(() => _tab = i);
-          },
+          onDestinationSelected: (i) => setState(() => _tab = i),
           backgroundColor: Colors.white,
           indicatorColor: _T.purpleContainer,
           elevation: 0,
@@ -224,7 +237,7 @@ class _HomeTab extends StatelessWidget {
                 _ErrorBox(message: error!, onRetry: onRefresh),
               ],
               const SizedBox(height: _T.s16),
-              const _PromoBanner(),
+              const _MonthlySubscriptionBanner(),
               const SizedBox(height: _T.s20),
               _OrderCta(onRefresh: onRefresh),
               const SizedBox(height: _T.s24),
@@ -322,6 +335,113 @@ class _SectionTitle extends StatelessWidget {
   }
 }
 
+/// Widget dekoratif gelembung laundry transparan bergradien di latar belakang kartu
+class _BubbleDecoration extends StatelessWidget {
+  final double borderRadius;
+  const _BubbleDecoration({this.borderRadius = _T.rXl});
+
+  @override
+  Widget build(BuildContext context) {
+    return Positioned.fill(
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(borderRadius),
+        child: Stack(
+          children: [
+            // Gelembung kanan atas
+            Positioned(
+              right: -25,
+              top: -25,
+              child: Container(
+                width: 120,
+                height: 120,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: RadialGradient(
+                    colors: [
+                      Colors.white.withValues(alpha: 0.22),
+                      Colors.white.withValues(alpha: 0.03),
+                    ],
+                  ),
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.18),
+                    width: 1.5,
+                  ),
+                ),
+              ),
+            ),
+            // Gelembung kanan bawah
+            Positioned(
+              right: 65,
+              bottom: -35,
+              child: Container(
+                width: 90,
+                height: 90,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: RadialGradient(
+                    colors: [
+                      Colors.white.withValues(alpha: 0.16),
+                      Colors.white.withValues(alpha: 0.02),
+                    ],
+                  ),
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.14),
+                    width: 1.2,
+                  ),
+                ),
+              ),
+            ),
+            // Gelembung kiri bawah
+            Positioned(
+              left: -18,
+              bottom: -18,
+              child: Container(
+                width: 75,
+                height: 75,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: RadialGradient(
+                    colors: [
+                      Colors.white.withValues(alpha: 0.15),
+                      Colors.white.withValues(alpha: 0.02),
+                    ],
+                  ),
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.12),
+                    width: 1.0,
+                  ),
+                ),
+              ),
+            ),
+            // Gelembung kecil atas
+            Positioned(
+              left: 140,
+              top: -12,
+              child: Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: RadialGradient(
+                    colors: [
+                      Colors.white.withValues(alpha: 0.20),
+                      Colors.white.withValues(alpha: 0.04),
+                    ],
+                  ),
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.16),
+                    width: 1.0,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class _HeaderCard extends StatelessWidget {
   final String greeting;
   final String userName;
@@ -341,7 +461,6 @@ class _HeaderCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(_T.s20),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
           begin: Alignment.topLeft,
@@ -351,79 +470,87 @@ class _HeaderCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(_T.rXl),
         boxShadow: _T.shadowPurple,
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Stack(
         children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: Column(
+          const _BubbleDecoration(borderRadius: _T.rXl),
+          Padding(
+            padding: const EdgeInsets.all(_T.s20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      greeting,
-                      style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.78),
-                        fontSize: 13,
-                        fontWeight: FontWeight.w500,
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            greeting,
+                            style: TextStyle(
+                              color: Colors.white.withValues(alpha: 0.78),
+                              fontSize: 13,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          const SizedBox(height: _T.s4),
+                          Text(
+                            userName,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 22,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: -0.3,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
                       ),
                     ),
-                    const SizedBox(height: _T.s4),
-                    Text(
-                      userName,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 22,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: -0.3,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
+                    const SizedBox(width: _T.s12),
+                    const _NotificationButton(),
                   ],
                 ),
-              ),
-              const SizedBox(width: _T.s12),
-              const _NotificationButton(),
-            ],
-          ),
-          const SizedBox(height: _T.s20),
-          if (loading)
-            Row(
-              children: [
-                const SizedBox(
-                  width: 12,
-                  height: 12,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    color: Colors.white,
+                const SizedBox(height: _T.s20),
+                if (loading)
+                  Row(
+                    children: [
+                      const SizedBox(
+                        width: 12,
+                        height: 12,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      ),
+                      const SizedBox(width: _T.s8),
+                      Text(
+                        'Memuat pesanan...',
+                        style: TextStyle(
+                          color: Colors.white.withValues(alpha: 0.9),
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
+                  )
+                else
+                  Row(
+                    children: [
+                      _StatPill(
+                        label: '$totalOrders pesanan',
+                        icon: Icons.receipt_long_outlined,
+                      ),
+                      const SizedBox(width: _T.s8),
+                      _StatPill(
+                        label: '$activeOrders aktif',
+                        icon: Icons.local_laundry_service_outlined,
+                      ),
+                    ],
                   ),
-                ),
-                const SizedBox(width: _T.s8),
-                Text(
-                  'Memuat pesanan...',
-                  style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.9),
-                    fontSize: 12,
-                  ),
-                ),
-              ],
-            )
-          else
-            Row(
-              children: [
-                _StatPill(
-                  label: '$totalOrders pesanan',
-                  icon: Icons.receipt_long_outlined,
-                ),
-                const SizedBox(width: _T.s8),
-                _StatPill(
-                  label: '$activeOrders aktif',
-                  icon: Icons.local_laundry_service_outlined,
-                ),
               ],
             ),
+          ),
         ],
       ),
     );
@@ -435,48 +562,60 @@ class _NotificationButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return IconButton(
-      onPressed: () {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Belum ada notifikasi')));
-      },
-      style: IconButton.styleFrom(
-        backgroundColor: Colors.white.withValues(alpha: 0.18),
-        fixedSize: const Size(42, 42),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(_T.rSm),
-        ),
-      ),
-      icon: Stack(
-        clipBehavior: Clip.none,
-        children: [
-          const Icon(
-            Icons.notifications_outlined,
-            color: Colors.white,
-            size: 22,
-          ),
-          Positioned(
-            right: -1,
-            top: -1,
-            child: Container(
-              width: 8,
-              height: 8,
-              decoration: BoxDecoration(
-                color: const Color(0xFFFFD166),
-                shape: BoxShape.circle,
-                border: Border.all(color: _T.purple, width: 1.5),
-              ),
+    return ListenableBuilder(
+      listenable: inAppNotificationService,
+      builder: (context, _) {
+        final unreadCount = inAppNotificationService.unreadCount;
+
+        return IconButton(
+          onPressed: () {
+            inAppNotificationService.markAllAsRead();
+            showModalBottomSheet(
+              context: context,
+              backgroundColor: Colors.transparent,
+              isScrollControlled: true,
+              builder: (_) => const NotificationSheet(),
+            );
+          },
+          style: IconButton.styleFrom(
+            backgroundColor: Colors.white.withValues(alpha: 0.18),
+            fixedSize: const Size(42, 42),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(_T.rSm),
             ),
           ),
-        ],
-      ),
+          icon: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              const Icon(
+                Icons.notifications_outlined,
+                color: Colors.white,
+                size: 22,
+              ),
+              if (unreadCount > 0)
+                Positioned(
+                  right: -2,
+                  top: -2,
+                  child: Container(
+                    width: 10,
+                    height: 10,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFF4757),
+                      shape: BoxShape.circle,
+                      border: Border.all(color: _T.purple, width: 1.5),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        );
+      },
     );
   }
 }
 
-class _PromoBanner extends StatelessWidget {
-  const _PromoBanner();
+class _MonthlySubscriptionBanner extends StatelessWidget {
+  const _MonthlySubscriptionBanner();
 
   @override
   Widget build(BuildContext context) {
@@ -484,7 +623,7 @@ class _PromoBanner extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(_T.s12),
       decoration: BoxDecoration(
-        color: const Color(0xFFFFF8EC),
+        color: const Color(0xFFEEF8F1),
         borderRadius: BorderRadius.circular(_T.rMd),
         boxShadow: _T.shadowSoft,
       ),
@@ -494,12 +633,12 @@ class _PromoBanner extends StatelessWidget {
             width: 42,
             height: 42,
             decoration: BoxDecoration(
-              color: const Color(0xFFFAC775),
+              color: const Color(0xFFCFEED8),
               borderRadius: BorderRadius.circular(_T.rSm),
             ),
             child: const Icon(
-              Icons.local_offer_outlined,
-              color: Color(0xFF633806),
+              Icons.workspace_premium_outlined,
+              color: Color(0xFF207A3D),
               size: 20,
             ),
           ),
@@ -509,30 +648,30 @@ class _PromoBanner extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Promo Hemat 20%',
+                  'Langganan Bulanan',
                   style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w700,
-                    color: Color(0xFF633806),
+                    color: Color(0xFF1B5E2E),
                   ),
                 ),
                 SizedBox(height: 2),
                 Text(
-                  'Berlaku hari ini untuk cuci + setrika',
-                  style: TextStyle(fontSize: 11.5, color: Color(0xFF854F0B)),
+                  'Diskon otomatis 10% setelah 5 pesanan bulan ini',
+                  style: TextStyle(fontSize: 11.5, color: Color(0xFF39734A)),
                 ),
               ],
             ),
           ),
           const SizedBox(width: _T.s8),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
-              color: const Color(0xFFEF9F27),
+              color: const Color(0xFF2E9B4E),
               borderRadius: BorderRadius.circular(_T.rPill),
             ),
             child: const Text(
-              'Klaim',
+              'Otomatis',
               style: TextStyle(
                 color: Colors.white,
                 fontSize: 11.5,
@@ -572,46 +711,53 @@ class _OrderCta extends StatelessWidget {
         },
         child: Ink(
           width: double.infinity,
-          padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 20),
           decoration: BoxDecoration(
             color: _T.purple,
             borderRadius: BorderRadius.circular(_T.rLg),
             boxShadow: _T.shadowPurple,
           ),
-          child: Row(
+          child: Stack(
             children: [
-              const Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+              const _BubbleDecoration(borderRadius: _T.rLg),
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 20),
+                child: Row(
                   children: [
-                    Text(
-                      'Buat Pesanan Baru',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: -0.2,
+                    const Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Buat Pesanan Baru',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: -0.2,
+                            ),
+                          ),
+                          SizedBox(height: 3),
+                          Text(
+                            'Cuci, setrika, atau ekspres',
+                            style: TextStyle(
+                              color: Color(0xCCFFFFFF),
+                              fontSize: 12.5,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                    SizedBox(height: 3),
-                    Text(
-                      'Cuci, setrika, atau ekspres',
-                      style: TextStyle(
-                        color: Color(0xCCFFFFFF),
-                        fontSize: 12.5,
+                    Container(
+                      width: 44,
+                      height: 44,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.2),
+                        borderRadius: BorderRadius.circular(_T.rSm),
                       ),
+                      child: const Icon(Icons.add, color: Colors.white, size: 24),
                     ),
                   ],
                 ),
-              ),
-              Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.2),
-                  borderRadius: BorderRadius.circular(_T.rSm),
-                ),
-                child: const Icon(Icons.add, color: Colors.white, size: 24),
               ),
             ],
           ),

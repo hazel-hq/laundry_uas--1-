@@ -12,6 +12,7 @@ Tujuan utama:
 
 - Pengguna dapat membuat pesanan laundry tanpa datang langsung ke outlet.
 - Pengguna dapat melihat total biaya berdasarkan berat dan jenis layanan.
+- Pengguna pelanggan tetap dapat memperoleh diskon bulanan otomatis setelah mencapai jumlah pemesanan tertentu.
 - Pengguna dapat memantau status laundry secara bertahap.
 - Pengguna dapat memilih dan mengonfirmasi metode pembayaran.
 - Admin dapat memantau seluruh pesanan dan memperbarui status pesanan melalui Dashboard Admin.
@@ -26,7 +27,8 @@ Tujuan utama:
 
 ### 4.1 Login
 
-- Pengguna dapat masuk menggunakan username dan password.
+- Pengguna dapat masuk menggunakan email, username, dan password.
+- Tampilan login menggunakan logo aset resmi `app_icon.png` ber-radius membulat dan efek bayangan lembut.
 - Pengguna dapat mendaftar sebagai pelanggan baru.
 - Pengguna dapat masuk sebagai guest.
 - Sistem membedakan role pelanggan dan admin.
@@ -36,25 +38,38 @@ Tujuan utama:
 ### 4.2 Home
 
 - Menampilkan sapaan berdasarkan waktu.
+- Tampilan Header Card & Kartu Buat Pesanan menggunakan gradien ungu (`#6C63FF`) dengan aksen dekoratif gelembung laundry transparan (`_BubbleDecoration`).
+- Navigasi antar-tab (Home, Riwayat, Tracking, Profil) menggunakan transisi halus `AnimatedSwitcher` (fade + slide).
+- Menampilkan ikon lonceng notifikasi interaktif dengan indikator badge merah (*unread count*) untuk pembaruan status pesanan realtime.
 - Menampilkan jumlah total pesanan.
 - Menampilkan jumlah pesanan aktif.
 - Menampilkan daftar layanan:
   - Cuci: Rp 5.000/kg
   - Setrika: Rp 4.000/kg
   - Express: Rp 8.000/kg
+  - Cuci+Setrika: Rp 8.500/kg
 - Menampilkan dua pesanan terbaru.
 
 ### 4.3 Buat Pesanan
 
-- Pengguna mengisi nama pelanggan, berat laundry, dan jenis layanan.
-- Sistem menghitung total otomatis dengan rumus:
+- Pengguna mengisi nama pelanggan, nomor HP, berat laundry, dan jenis layanan.
+- Sistem menghitung subtotal otomatis dengan rumus:
 
 ```text
-Total = berat x harga layanan
+Subtotal = berat x harga layanan
+```
+
+- Sistem memberikan diskon bulanan otomatis sebesar 10% jika pelanggan sudah membuat minimal 5 pesanan dalam bulan berjalan.
+- Total pembayaran dihitung dengan rumus:
+
+```text
+Total = subtotal - diskon
 ```
 
 - Validasi:
   - Nama wajib diisi.
+  - Nomor HP wajib diisi.
+  - Nomor HP harus memiliki format yang valid.
   - Berat wajib diisi.
   - Berat harus lebih dari 0.
   - Setelah berhasil, pesanan disimpan ke database Supabase.
@@ -78,27 +93,34 @@ Total = berat x harga layanan
 - Pengguna dapat masuk ke halaman tracking.
 - Pengguna dapat masuk ke halaman pembayaran jika status pembayaran masih "Belum dibayar".
 
-### 4.6 Tracking Pesanan
+### 4.6 Tracking Pesanan & Notifikasi Realtime
 
-- Menampilkan status pesanan saat ini.
+- Menampilkan kartu status saat ini, deskripsi proses, dan indikator kemajuan langkah.
 - Status yang tersedia:
   - Menunggu
   - Dicuci
   - Dijemur
   - Selesai
   - Diantar
-- Menampilkan progress dalam bentuk timeline.
-- Pelanggan dapat melihat perkembangan status pesanan.
+- Menampilkan progress dalam bentuk timeline vertikal yang membedakan tahap selesai, tahap saat ini, dan tahap berikutnya.
+- Setiap tahap menampilkan ikon, judul status, serta deskripsi proses laundry.
+- Pelanggan dapat melihat perkembangan status pesanan secara transparan.
 - Perubahan status dilakukan oleh admin melalui Dashboard Admin.
+- **Sistem Notifikasi Realtime & In-App Feed**:
+  - Saat admin mengubah status pesanan, Supabase Realtime mengirimkan payload update (`PostgresChangeEvent.update`).
+  - Aplikasi memicu **Local Push Notification** pada perangkat pengguna.
+  - Notifikasi disimpan ke dalam **In-App Notification Feed** yang dapat diakses dari ikon lonceng di Home.
+  - Ikon lonceng menampilkan **indikator dot merah** (*unread notification badge*) yang menyala otomatis saat ada pembaruan status baru.
+  - Membuka modal lembaran notifikasi (`NotificationSheet`) menampilkan daftar notifikasi dengan ikon & warna status khusus, waktu relatif, serta tombol hapus riwayat.
 
 ### 4.7 Pembayaran
 
-- Menampilkan ringkasan tagihan.
+- Menampilkan ringkasan tagihan, meliputi subtotal, diskon bulanan jika ada, dan total tagihan akhir.
 - Metode pembayaran:
   - QRIS
   - COD / Tunai
 - Untuk QRIS:
-  - Menampilkan placeholder QR.
+  - Menampilkan QRIS pembayaran statis.
   - Menampilkan nominal transfer.
   - Menampilkan nomor rekening / QRIS ID.
   - Pengguna dapat menyalin nomor pembayaran.
@@ -175,18 +197,23 @@ Alur aplikasi dibagi berdasarkan peran pengguna, yaitu pelanggan dan admin. Pemi
 4. Sistem menampilkan form pesanan.
 5. Pelanggan mengisi:
    - Nama pelanggan
+   - Nomor HP
    - Berat laundry
    - Jenis layanan
 6. Sistem menghitung estimasi total secara otomatis berdasarkan berat dan harga layanan.
+   - Jika pesanan tersebut menjadi pesanan ke-5 atau lebih dalam bulan berjalan, sistem otomatis menerapkan diskon bulanan 10%.
 7. Pelanggan menekan tombol **Buat pesanan**.
 8. Sistem melakukan validasi:
    - Nama pelanggan wajib diisi.
+   - Nomor HP wajib diisi.
+   - Nomor HP harus valid.
    - Berat wajib diisi.
    - Berat harus lebih dari 0.
    - Layanan harus dipilih.
 9. Jika validasi berhasil, sistem menyimpan pesanan ke database dengan status awal:
    - Status pesanan: `Menunggu`
    - Status pembayaran: `Belum dibayar`
+   - Diskon: `10%` dari subtotal jika memenuhi syarat langganan bulanan, selain itu `0`
 10. Sistem langsung mengarahkan pelanggan ke halaman Pembayaran untuk menyelesaikan pembayaran pesanan tersebut.
 
 ### 5.4 Alur Pelanggan Melihat Riwayat dan Detail Pesanan
@@ -202,10 +229,13 @@ Alur aplikasi dibagi berdasarkan peran pengguna, yaitu pelanggan dan admin. Pemi
 5. Sistem menampilkan detail pesanan, meliputi:
    - Kode pesanan
    - Nama pelanggan
+   - Nomor HP
    - Tanggal pesanan
    - Layanan
    - Berat
    - Harga satuan
+   - Subtotal
+   - Diskon bulanan jika ada
    - Total pembayaran
    - Status pesanan
    - Status pembayaran
@@ -224,17 +254,22 @@ Alur aplikasi dibagi berdasarkan peran pengguna, yaitu pelanggan dan admin. Pemi
    - `Dijemur`
    - `Selesai`
    - `Diantar`
-5. Pelanggan hanya melihat perkembangan status pesanan.
-6. Perubahan status dilakukan oleh admin melalui Dashboard Admin.
+5. Timeline memberi penanda `Selesai` pada tahap yang telah lewat dan `Sekarang` pada tahap aktif.
+6. Pelanggan hanya melihat perkembangan status pesanan.
+7. Perubahan status dilakukan oleh admin melalui Dashboard Admin.
+8. Saat aplikasi pelanggan aktif dan terhubung, perubahan status memicu notifikasi aplikasi.
 
 ### 5.6 Alur Pembayaran Pelanggan
 
 1. Pelanggan diarahkan ke halaman Pembayaran setelah berhasil membuat pesanan, atau membuka halaman Pembayaran dari detail pesanan jika pesanan belum dibayar.
 2. Sistem menampilkan ringkasan tagihan:
    - Nama pelanggan
+   - Nomor HP
    - Layanan
    - Berat
    - Harga satuan
+   - Subtotal
+   - Diskon bulanan jika memenuhi syarat
    - Total tagihan
 3. Pelanggan memilih metode pembayaran:
    - QRIS
@@ -268,7 +303,7 @@ Alur aplikasi dibagi berdasarkan peran pengguna, yaitu pelanggan dan admin. Pemi
    - `Selesai`
    - `Diantar`
 6. Sistem menyimpan perubahan status ke database.
-7. Perubahan status langsung terlihat pada halaman riwayat dan tracking pelanggan.
+7. Perubahan status langsung terlihat pada halaman riwayat dan tracking pelanggan, serta memicu notifikasi aplikasi saat pelanggan terhubung.
 8. Admin dapat melakukan refresh data untuk melihat pesanan terbaru.
 9. Admin dapat logout dari Dashboard Admin.
 
@@ -295,8 +330,11 @@ Field:
 - `orderCode`
 - `customerUsername`
 - `nama`
+- `customerPhone`
 - `berat`
 - `layanan`
+- `subtotal`
+- `discount`
 - `total`
 - `status`
 - `statusBayar`
@@ -327,10 +365,8 @@ Data pesanan tetap tersimpan di Supabase selama proses simpan ke database berhas
 
 - Autentikasi masih menggunakan tabel demo `app_users`, belum menggunakan Supabase Auth resmi.
 - Password akun demo masih disimpan untuk kebutuhan simulasi aplikasi.
-- QRIS masih berupa placeholder.
-- Profil belum masuk ke bottom navigation.
 - Belum ada fitur alamat jemput/antar.
-- Belum ada notifikasi status pesanan.
+- Notifikasi status realtime, local push notification, dan feed ikon lonceng aplikasi aktif saat aplikasi berjalan atau latar belakang; notifikasi saat aplikasi ditutup total (killed state) membutuhkan integrasi Firebase Cloud Messaging (FCM).
 
 ## 9. Rekomendasi Pengembangan Berikutnya
 
@@ -339,6 +375,7 @@ Data pesanan tetap tersimpan di Supabase selama proses simpan ke database berhas
 - Perkuat RLS agar akses pelanggan benar-benar dibatasi di level database.
 - Tambahkan alamat pelanggan dan opsi antar/jemput.
 - Tambahkan QRIS asli atau upload bukti transfer.
+- Tambahkan Firebase Cloud Messaging agar pembaruan status diterima ketika aplikasi ditutup.
 - Tambahkan persistensi data lokal sementara menggunakan shared preferences atau database lokal.
 - Hubungkan screen profil ke navigasi utama.
 - Tambahkan testing untuk validasi pesanan dan perhitungan harga.

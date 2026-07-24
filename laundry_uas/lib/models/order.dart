@@ -3,26 +3,36 @@ class Order {
   final String orderCode;
   final String? customerUsername;
   String nama;
+  String customerPhone;
   double berat;
   String layanan;
+  double subtotal;
+  double discount;
   double total;
   String status;
   String statusBayar;
   String tanggal;
+  final DateTime orderedAt;
 
   Order({
     required this.id,
     String? orderCode,
     this.customerUsername,
     required this.nama,
+    this.customerPhone = '',
     required this.berat,
     required this.layanan,
     required this.total,
+    double? subtotal,
+    this.discount = 0,
     this.status = 'Menunggu',
     this.statusBayar = 'Belum dibayar',
     String? tanggal,
+    DateTime? orderedAt,
   }) : orderCode = orderCode ?? 'LDR-${_shortId(id)}',
-       tanggal = tanggal ?? _today();
+       subtotal = subtotal ?? total,
+       orderedAt = orderedAt ?? DateTime.now(),
+       tanggal = tanggal ?? _formatTanggal(orderedAt ?? DateTime.now());
 
   factory Order.fromSupabase(Map<String, dynamic> data) {
     final items = (data['order_items'] as List<dynamic>? ?? []);
@@ -36,11 +46,15 @@ class Order {
       orderCode: '${data['order_code'] ?? 'LDR-${_shortId('${data['id']}')}'}',
       customerUsername: data['customer_username']?.toString(),
       nama: '${data['customer_name'] ?? '-'}',
+      customerPhone: '${data['customer_phone'] ?? ''}',
       berat: _asDouble(firstItem['weight_kg']),
       layanan: '${firstItem['service_name'] ?? '-'}',
+      subtotal: _asDouble(data['subtotal']),
+      discount: _asDouble(data['discount']),
       total: _asDouble(data['total']),
       status: '${data['status'] ?? 'Menunggu'}',
       statusBayar: '${data['payment_status'] ?? 'Belum dibayar'}',
+      orderedAt: orderedAt,
       tanggal: orderedAt == null ? _today() : _formatTanggal(orderedAt),
     );
   }
@@ -49,6 +63,10 @@ class Order {
     if (value is num) return value.toDouble();
     return double.tryParse('$value') ?? 0;
   }
+
+  double get pricePerKg => berat == 0 ? 0 : subtotal / berat;
+
+  bool get hasDiscount => discount > 0;
 
   static String _today() {
     final now = DateTime.now();
@@ -67,15 +85,16 @@ class Order {
   Map<String, dynamic> toOrderInsert({String? username}) {
     return {
       'customer_name': nama,
+      'customer_phone': customerPhone,
       'customer_username': username,
       'status': status,
       'payment_status': statusBayar,
+      'subtotal': subtotal,
+      'discount': discount,
     };
   }
 
   Map<String, dynamic> toItemInsert(String orderId) {
-    final pricePerKg = berat == 0 ? 0 : total / berat;
-
     return {
       'order_id': orderId,
       'service_name': layanan,

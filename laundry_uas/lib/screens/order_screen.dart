@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../models/order.dart';
 import '../models/order_data.dart';
+import '../services/order_repository.dart';
+import '../theme/app_theme.dart';
 import 'payment_screen.dart';
 
 class OrderScreen extends StatefulWidget {
@@ -11,9 +13,12 @@ class OrderScreen extends StatefulWidget {
 
 class _OrderScreenState extends State<OrderScreen> {
   final _nama = TextEditingController();
+  final _phone = TextEditingController();
   final _berat = TextEditingController();
   String _layanan = 'Cuci';
   static const _purple = Color(0xFF6C63FF);
+  static const _discountRate = OrderRepository.monthlyDiscountRate;
+  static const _discountThreshold = OrderRepository.monthlyDiscountThreshold;
 
   final _layananList = [
     {
@@ -41,20 +46,71 @@ class _OrderScreenState extends State<OrderScreen> {
     return (item['harga'] as int).toDouble();
   }
 
-  double get _total {
+  double get _subtotal {
     final berat = double.tryParse(_berat.text) ?? 0;
     return berat * _hargaSatuan;
   }
 
+  double get _discount => _isDiscountEligible ? _subtotal * _discountRate : 0;
+
+  double get _total => _subtotal - _discount;
+
+  bool get _isDiscountEligible => _monthlyOrderCount + 1 >= _discountThreshold;
+
+  bool get _showLegacyPricePreview => false;
+
   bool _saving = false;
+  bool _checkingDiscount = true;
+  int _monthlyOrderCount = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadMonthlyDiscountProgress();
+  }
+
+  Future<void> _loadMonthlyDiscountProgress() async {
+    try {
+      final count = await orderRepository.countCurrentMonthOrders();
+      if (!mounted) return;
+      setState(() {
+        _monthlyOrderCount = count;
+        _checkingDiscount = false;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _checkingDiscount = false);
+    }
+  }
+
+  @override
+  void dispose() {
+    _nama.dispose();
+    _phone.dispose();
+    _berat.dispose();
+    super.dispose();
+  }
 
   Future<void> _simpan() async {
-    if (_nama.text.isEmpty || _berat.text.isEmpty) {
+    final phone = _phone.text.trim();
+
+    if (_nama.text.trim().isEmpty || phone.isEmpty || _berat.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Nama dan berat wajib diisi')),
+        const SnackBar(content: Text('Nama, nomor HP, dan berat wajib diisi')),
       );
       return;
     }
+
+    final normalizedPhone = phone.replaceAll(RegExp(r'[\s-]'), '');
+    if (normalizedPhone.length < 10 ||
+        normalizedPhone.length > 15 ||
+        !RegExp(r'^\+?\d+$').hasMatch(normalizedPhone)) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Nomor HP belum valid')));
+      return;
+    }
+
     final berat = double.tryParse(_berat.text) ?? 0;
     if (berat <= 0) {
       ScaffoldMessenger.of(
@@ -69,9 +125,12 @@ class _OrderScreenState extends State<OrderScreen> {
       final order = await orderRepository.createOrder(
         Order(
           id: DateTime.now().millisecondsSinceEpoch.toString(),
-          nama: _nama.text,
+          nama: _nama.text.trim(),
+          customerPhone: phone,
           berat: berat,
           layanan: _layanan,
+          subtotal: _subtotal,
+          discount: _discount,
           total: _total,
         ),
       );
@@ -106,18 +165,12 @@ class _OrderScreenState extends State<OrderScreen> {
     final berat = double.tryParse(_berat.text) ?? 0;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F6FA),
+      backgroundColor: AppTheme.background,
       appBar: AppBar(
-        title: const Text(
-          'Buat pesanan',
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-        ),
-        backgroundColor: Colors.white,
-        foregroundColor: const Color(0xFF1a1a2e),
-        elevation: 0,
+        title: const Text('Buat pesanan'),
         bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(0.5),
-          child: Container(color: Colors.grey.shade200, height: 0.5),
+          preferredSize: const Size.fromHeight(1),
+          child: Container(color: const Color(0xFFE9EAF0), height: 1),
         ),
       ),
       body: SingleChildScrollView(
@@ -131,21 +184,29 @@ class _OrderScreenState extends State<OrderScreen> {
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: Colors.grey.shade100, width: 0.5),
+                border: Border.all(color: const Color(0xFFE9EAF0)),
+                boxShadow: AppTheme.softShadow,
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    'Data pelanggan',
+                    'Informasi pelanggan',
                     style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w500,
-                      color: Colors.grey,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      color: AppTheme.textDark,
                     ),
                   ),
                   const SizedBox(height: 12),
                   _buildField(_nama, 'Nama lengkap', Icons.person_outline),
+                  const SizedBox(height: 12),
+                  _buildField(
+                    _phone,
+                    'Nomor HP',
+                    Icons.phone_outlined,
+                    keyboardType: TextInputType.phone,
+                  ),
                   const SizedBox(height: 12),
                   _buildField(
                     _berat,
@@ -159,23 +220,95 @@ class _OrderScreenState extends State<OrderScreen> {
 
             const SizedBox(height: 12),
 
+            // Info diskon langganan bulanan
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: _isDiscountEligible
+                    ? const Color(0xFFE8F5E9)
+                    : Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: _isDiscountEligible
+                      ? const Color(0xFF2E7D32)
+                      : Colors.grey.shade100,
+                  width: 0.5,
+                ),
+                boxShadow: AppTheme.softShadow,
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: _isDiscountEligible
+                          ? const Color(0xFFD5F0D8)
+                          : const Color(0xFFEEEDFE),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Icon(
+                      Icons.local_offer_outlined,
+                      color: _isDiscountEligible
+                          ? const Color(0xFF2E7D32)
+                          : _purple,
+                      size: 22,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          _isDiscountEligible
+                              ? 'Diskon bulanan aktif'
+                              : 'Diskon bulanan',
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFF1a1a2e),
+                          ),
+                        ),
+                        const SizedBox(height: 3),
+                        Text(
+                          _checkingDiscount
+                              ? 'Memeriksa jumlah pesanan bulan ini...'
+                              : _isDiscountEligible
+                              ? 'Pesanan ini mendapat diskon 10%.'
+                              : 'Pesanan ke-${_monthlyOrderCount + 1}; diskon aktif mulai pesanan ke-5 bulan ini.',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey.shade600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 12),
+
             // Pilih layanan
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: Colors.grey.shade100, width: 0.5),
+                border: Border.all(color: const Color(0xFFE9EAF0)),
+                boxShadow: AppTheme.softShadow,
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    'Pilih layanan',
+                    'Pilih layanan laundry',
                     style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w500,
-                      color: Colors.grey,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      color: AppTheme.textDark,
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -256,6 +389,44 @@ class _OrderScreenState extends State<OrderScreen> {
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [Color(0xFFF4F3FF), Color(0xFFE9E9FF)],
+                  ),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: const Color(0xFFB9BAFF)),
+                  boxShadow: AppTheme.softShadow,
+                ),
+                child: Column(
+                  children: [
+                    _PriceRow(
+                      label:
+                          '$berat kg x Rp ${_hargaSatuan.toStringAsFixed(0)}',
+                      value: 'Rp ${_subtotal.toStringAsFixed(0)}',
+                    ),
+                    if (_discount > 0) ...[
+                      const SizedBox(height: 8),
+                      _PriceRow(
+                        label: 'Diskon bulanan 10%',
+                        value: '-Rp ${_discount.toStringAsFixed(0)}',
+                        valueColor: const Color(0xFF2E7D32),
+                      ),
+                    ],
+                    const Divider(height: 18, thickness: 0.5),
+                    _PriceRow(
+                      label: 'Total bayar',
+                      value: 'Rp ${_total.toStringAsFixed(0)}',
+                      isTotal: true,
+                    ),
+                  ],
+                ),
+              ),
+
+            if (_showLegacyPricePreview && berat > 0)
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
                   color: const Color(0xFFEEEDFE),
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(
@@ -289,22 +460,15 @@ class _OrderScreenState extends State<OrderScreen> {
 
             SizedBox(
               width: double.infinity,
-              height: 50,
-              child: ElevatedButton(
+              height: 54,
+              child: ElevatedButton.icon(
                 onPressed: _saving ? null : _simpan,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: _purple,
-                  foregroundColor: Colors.white,
-                  elevation: 0,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                ),
-                child: Text(
+                icon: const Icon(Icons.arrow_forward_rounded, size: 20),
+                label: Text(
                   _saving ? 'Menyimpan...' : 'Buat pesanan',
                   style: const TextStyle(
                     fontSize: 15,
-                    fontWeight: FontWeight.w500,
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
               ),
@@ -320,35 +484,63 @@ class _OrderScreenState extends State<OrderScreen> {
     String label,
     IconData icon, {
     bool isNumber = false,
+    TextInputType? keyboardType,
   }) {
     return TextField(
       controller: ctrl,
-      keyboardType: isNumber ? TextInputType.number : TextInputType.text,
+      keyboardType:
+          keyboardType ??
+          (isNumber ? TextInputType.number : TextInputType.text),
       onChanged: (_) => setState(() {}),
-      style: const TextStyle(fontSize: 14),
+      style: const TextStyle(fontSize: 15, color: AppTheme.textDark),
       decoration: InputDecoration(
         labelText: label,
-        labelStyle: TextStyle(fontSize: 13, color: Colors.grey.shade500),
-        prefixIcon: Icon(icon, size: 20, color: Colors.grey.shade400),
-        filled: true,
-        fillColor: const Color(0xFFF5F6FA),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.grey.shade200, width: 0.5),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.grey.shade200, width: 0.5),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Color(0xFF6C63FF), width: 1),
-        ),
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 14,
-          vertical: 14,
-        ),
+        prefixIcon: Icon(icon, size: 20, color: AppTheme.textMuted),
       ),
+    );
+  }
+}
+
+class _PriceRow extends StatelessWidget {
+  final String label;
+  final String value;
+  final Color? valueColor;
+  final bool isTotal;
+
+  const _PriceRow({
+    required this.label,
+    required this.value,
+    this.valueColor,
+    this.isTotal = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Expanded(
+          child: Text(
+            label,
+            style: TextStyle(
+              fontSize: isTotal ? 14 : 13,
+              fontWeight: isTotal ? FontWeight.w600 : FontWeight.w400,
+              color: const Color(0xFF534AB7),
+            ),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: isTotal ? 16 : 13,
+            fontWeight: isTotal ? FontWeight.w700 : FontWeight.w600,
+            color:
+                valueColor ??
+                (isTotal ? const Color(0xFF3C3489) : const Color(0xFF534AB7)),
+          ),
+        ),
+      ],
     );
   }
 }
